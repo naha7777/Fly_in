@@ -1,4 +1,4 @@
-SRC =	sources/ fly_in.py
+SRC =	sources/ fly_in.py parsing.py
 
 FLAGS = --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
 

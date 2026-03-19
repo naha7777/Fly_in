@@ -8,6 +8,7 @@ dependencies = [
     "flake8>=7.3.0",
     "mypy>=1.19.1",
     "pydantic>=2.12.5",
+    "rich>=14.3.3",
 ]
 
 [dependency-groups]

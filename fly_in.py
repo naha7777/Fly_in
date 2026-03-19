@@ -1,6 +1,7 @@
-from parsing import MapConfig, Maps
+from parsing import Maps
 import sys
-import pydantic
+from rich import print
+
 
 if __name__ == "__main__":
     try:
@@ -8,11 +9,10 @@ if __name__ == "__main__":
             raise ValueError("invalid number of arguments")
         if not sys.argv[1].endswith(".txt"):
             raise ValueError("file must be a .txt")
+        # print("[red]bonjour[/red]")
         map = Maps(sys.argv[1])
-    except pydantic.ValidationError as e:
-        for error in e.errors():
-            print(f"ERROR: {error['msg'].replace('Value error, ', '')}")
+        print(map.config)
     except (ValueError, KeyboardInterrupt, KeyError, PermissionError,
             FileNotFoundError, Exception) as e:
-       print(f"ERROR: {e}")
-       exit(1)
+        print(f"ERROR: {e}")
+        exit(1)
