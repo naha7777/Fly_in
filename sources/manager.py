@@ -4,7 +4,8 @@ from typing import Any
 
 
 class Manager:
-    zones_lst = []
+    zones_lst: list[Zone] = []
+
     def __init__(self, map_valid: dict[str, Any]) -> None:
         self.map_valid = map_valid
         self.nb_drones = self.map_valid["nb_drones"]
@@ -20,16 +21,16 @@ class Manager:
                     self.co_metadatas.append("max_link_capacity=1")
         self.zones = {}
         for k, v in self.map_valid.items():
-            if k != "nb_drones" and k!= "connections":
+            if k != "nb_drones" and k != "connections":
                 self.zones[k] = v
 
     def create_zones(self) -> None:
         for k, v in self.zones.items():
-            self.name = None
-            self.metadt = None
-            self.color = None
-            self.type = None
-            self.max_drones = 0
+            self.name: str | Any = None
+            self.metadt: str | Any = None
+            self.color: str = "white"
+            self.type: str = "normal"
+            self.max_drones: int = 1
             if k != "hubs":
                 split_value = v.split(" ")
                 metadatas = v.split("[")
@@ -46,7 +47,7 @@ class Manager:
                     if "zone" in split_data[0]:
                         self.type = split_data[1].rstrip("]")
                     if "max_drones" in split_data[0]:
-                        self.max_drones = split_data[1].rstrip("]")
+                        self.max_drones = int(split_data[1].rstrip("]"))
                     if self.color is None:
                         self.color = "white"
                     if self.type is None:
@@ -74,7 +75,7 @@ class Manager:
                         if "zone" in split_data[0]:
                             self.type = split_data[1].rstrip("]")
                         if "max_drones" in split_data[0]:
-                            self.max_drones = split_data[1].rstrip("]")
+                            self.max_drones = int(split_data[1].rstrip("]"))
                         if self.color is None:
                             self.color = "white"
                         if self.type is None:
@@ -82,9 +83,8 @@ class Manager:
                         if self.max_drones == 0:
                             self.max_drones = 1
                     self.new_zone = Zone(self.name, self.type, self.color,
-                                        self.max_drones)
+                                         self.max_drones)
                     self.zones_lst.append(self.new_zone)
-
 
     def create_drones(self) -> None:
         pass
