@@ -1,6 +1,7 @@
 from parsing import Maps
 import sys
 from rich import print
+from sources.manager import Manager
 
 
 if __name__ == "__main__":
@@ -11,7 +12,7 @@ if __name__ == "__main__":
             raise ValueError("file must be a .txt")
         # print("[red]bonjour[/red]")
         map = Maps(sys.argv[1])
-        print(map.config)
+        manager = Manager(map.config)
     except (ValueError, KeyboardInterrupt, KeyError, PermissionError,
             FileNotFoundError, Exception) as e:
         print(f"ERROR: {e}")

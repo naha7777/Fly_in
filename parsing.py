@@ -2,14 +2,15 @@ from pydantic import BaseModel, Field, model_validator, ValidationError
 from typing import Any
 
 
-save_coordinates: list = []
+save_coordinates: list[tuple[str, str]] = []
 check_path = []
 zones_blocked = []
 
 validate_names: dict[str, str] = {}
 
+
 def _validate_connection(zone_value: str, line: int, tt_line: int,
-                         new_value: list) -> None:
+                         new_value: list[str]) -> None:
     """Validate syntax and semantics of a connection entry."""
     possible_co = ["max_link_capacity"]
     if "-" not in zone_value:
@@ -119,10 +120,10 @@ def _check_path_reachability(line: int) -> None:
                          " connected")
 
 
-def _validate_hub_metadata_multiple(new_value: list, line: int,
-                                    metadata_type: list,
-                                    possible_colors: list,
-                                    possible_zones: list) -> None:
+def _validate_hub_metadata_multiple(new_value: list[str], line: int,
+                                    metadata_type: list[str],
+                                    possible_colors: list[str],
+                                    possible_zones: list[str]) -> None:
     """Validate multiple space-separated metadata pairs inside brackets."""
     count_zone = 0
     count_color = 0
@@ -167,10 +168,10 @@ def _validate_hub_metadata_multiple(new_value: list, line: int,
                              " metadata two times")
 
 
-def _validate_hub_metadata_single(new_value: list, line: int,
-                                  metadata_type: list,
-                                  possible_colors: list,
-                                  possible_zones: list) -> None:
+def _validate_hub_metadata_single(new_value: list[str], line: int,
+                                  metadata_type: list[str],
+                                  possible_colors: list[str],
+                                  possible_zones: list[str]) -> None:
     """Validate a single metadata pair inside brackets."""
     metadatas = new_value[3].strip("[")
     metadatas = metadatas.rstrip("]")
@@ -193,7 +194,7 @@ def _validate_hub_metadata_single(new_value: list, line: int,
                              f" '{data[1]}'")
 
 
-def _validate_hub(zone_value: str, line: int, new_value: list) -> None:
+def _validate_hub(line: int, new_value: list[str]) -> None:
     """Validate a hub entry: name, coordinates, and optional metadata."""
     if len(new_value) != 4 and len(new_value) != 3:
         raise ValueError(f"line {line}: informations incorrect {new_value}")
@@ -238,8 +239,6 @@ def _validate_hub(zone_value: str, line: int, new_value: list) -> None:
 def validate(type: str, zone_value: str, line: int, tt_line: int) -> None:
     """Dispatch validation for a map entry (hub or connection)."""
     new_value = zone_value.split(" ", 3)
-    if not hasattr(validate, "names"):
-        validate_names = {}
 
     validate_names[type] = new_value[0]
     if len(validate_names.values()) != len(set(validate_names.values())):
@@ -249,7 +248,7 @@ def validate(type: str, zone_value: str, line: int, tt_line: int) -> None:
         _validate_connection(zone_value, line, tt_line, new_value)
         return
 
-    _validate_hub(zone_value, line, new_value)
+    _validate_hub(line, new_value)
 
 
 class MapConfig(BaseModel):
@@ -259,12 +258,12 @@ class MapConfig(BaseModel):
     drones_line: int = Field(ge=1)
     start_hub: str = Field(min_length=1)
     start_line: int = Field(ge=1)
-    hubs: dict
-    hub_lines: list
+    hubs: dict[str, Any]
+    hub_lines: list[int]
     end_hub: str = Field(min_length=1)
     end_line: int = Field(ge=1)
-    connections: dict
-    co_lines: list
+    connections: dict[str, Any]
+    co_lines: list[int]
     tt_line: int = Field(ge=1)
 
     @model_validator(mode="after")
@@ -309,7 +308,7 @@ class Maps:
         """Reset all per-file parsing counters."""
         self.i = 0
         self.j = 0
-        self.first_key = []
+        self.first_key: list[str] = []
         self.start_count = -1
         self.end_count = -1
         self.line_count = 0
@@ -321,9 +320,9 @@ class Maps:
         with open(file, "r") as f:
             return f.read().split("\n")
 
-    def _parse_line(self, line: str, hub_lines: list,
-                    co_lines: list) -> tuple[int | None, int | None,
-                                             int | None, int | None]:
+    def _parse_line(self, line: str, hub_lines: list[int],
+                    co_lines: list[int]) -> tuple[int | None, int | None,
+                                                  int | None, int | None]:
         """Parse one line, update ``self.config``, and return line numbers."""
         drones_line = start_line = end_line = None
 
@@ -378,7 +377,7 @@ class Maps:
 
         return drones_line, start_line, end_line, self.line_count
 
-    def _build_sub_dicts(self) -> tuple[dict, dict]:
+    def _build_sub_dicts(self) -> tuple[dict[str, Any], dict[str, Any]]:
         """Extract hub and connection sub-dicts from ``self.config``."""
         hub_dict = {k: v for k, v in self.config.items()
                     if k.startswith("hub")}
@@ -386,10 +385,11 @@ class Maps:
                    if k.startswith("connection")}
         return hub_dict, co_dict
 
-    def _run_pydantic_validation(self, hub_dict: dict, co_dict: dict,
-                                 drones_line: int, start_line: int,
-                                 end_line: int, hub_lines: list,
-                                 co_lines: list, tt_line: int) -> MapConfig:
+    def _run_pydantic_validation(self, hub_dict: dict[str, Any],
+                                 co_dict: dict[str, Any], drones_line: int,
+                                 start_line: int, end_line: int,
+                                 hub_lines: list[int], co_lines: list[int],
+                                 tt_line: int) -> MapConfig:
         """
         Instantiate MapConfig and re-raise ValidationError with line info.
         """
@@ -419,11 +419,11 @@ class Maps:
                 elif field == "end_hub":
                     error_line = end_line
                 msg = (error.get("msg") or "").replace("Value error, ", "")
-                new_msg = msg.replace("Input", field)
+                new_msg = msg.replace("Input", str(field))
                 raise ValueError(f"line {error_line}: {new_msg}")
         return validated
 
-    def validate_config(self, file: str) -> dict:
+    def validate_config(self, file: str) -> dict[str, Any]:
         """Parse the map file and return the validated configuration dict."""
         self._init_counters()
         map_content = self._read_file(file)
