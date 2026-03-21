@@ -1,30 +1,13 @@
 # from sources.drones import Drones
-# from sources.zones import Zones
+from sources.zones import Zone
 from typing import Any
 
 
 class Manager:
+    zones_lst = []
     def __init__(self, map_valid: dict[str, Any]) -> None:
         self.map_valid = map_valid
         self.nb_drones = self.map_valid["nb_drones"]
-        self.start_hub = self.map_valid["start_hub"]
-        self.start_name = self.start_hub.split(" ")[0]
-        self.end_hub = self.map_valid["end_hub"]
-        self.end_name = self.end_hub.split(" ")[0]
-        if "[" in self.start_hub:
-            self.start_metadata = self.start_hub.split("[")[1].rstrip("]")
-        if "[" in self.end_hub:
-            self.end_metadata = self.end_hub.split("[")[1].rstrip("]")
-        if "hubs" in self.map_valid:
-            self.hubs_names = []
-            self.hubs_metadatas = []
-            for k, v in map_valid["hubs"].items():
-                parts = v.split(" ")
-                self.hubs_names.append(parts[0])
-                if "[" in v:
-                    self.hubs_metadatas.append(v.split("[")[1].rstrip("]"))
-                else:
-                    self.hubs_metadatas.append("no metada for this one")
         if "connections" in self.map_valid:
             self.co_names = []
             self.co_metadatas = []
@@ -35,9 +18,73 @@ class Manager:
                     self.co_metadatas.append(v.split("[")[1].rstrip("]"))
                 else:
                     self.co_metadatas.append("max_link_capacity=1")
+        self.zones = {}
+        for k, v in self.map_valid.items():
+            if k != "nb_drones" and k!= "connections":
+                self.zones[k] = v
 
     def create_zones(self) -> None:
-        pass
+        for k, v in self.zones.items():
+            self.name = None
+            self.metadt = None
+            self.color = None
+            self.type = None
+            self.max_drones = 0
+            if k != "hubs":
+                split_value = v.split(" ")
+                metadatas = v.split("[")
+                self.name = split_value[0]
+                if len(split_value) >= 4:
+                    self.metadt = metadatas[1]
+                else:
+                    self.metadt = "[color=white zone=normal max_drones=1]"
+                separate_data = self.metadt.split(" ")
+                for data in separate_data:
+                    split_data = data.split("=")
+                    if "color" in split_data[0]:
+                        self.color = split_data[1].rstrip("]")
+                    if "zone" in split_data[0]:
+                        self.type = split_data[1].rstrip("]")
+                    if "max_drones" in split_data[0]:
+                        self.max_drones = split_data[1].rstrip("]")
+                    if self.color is None:
+                        self.color = "white"
+                    if self.type is None:
+                        self.type = "normal"
+                    if self.max_drones == 0:
+                        self.max_drones = 1
+                self.new_zone = Zone(self.name, self.type, self.color,
+                                     self.max_drones)
+                self.zones_lst.append(self.new_zone)
+            else:
+                for key, value in v.items():
+                    self.name = key
+                    split_value = value.split(" ")
+                    metadatas = value.split("[")
+                    self.name = split_value[0]
+                    if len(split_value) >= 4:
+                        self.metadt = metadatas[1]
+                    else:
+                        self.metadt = "[color=white zone=normal max_drones=1]"
+                    separate_data = self.metadt.split(" ")
+                    for data in separate_data:
+                        split_data = data.split("=")
+                        if "color" in split_data[0]:
+                            self.color = split_data[1].rstrip("]")
+                        if "zone" in split_data[0]:
+                            self.type = split_data[1].rstrip("]")
+                        if "max_drones" in split_data[0]:
+                            self.max_drones = split_data[1].rstrip("]")
+                        if self.color is None:
+                            self.color = "white"
+                        if self.type is None:
+                            self.type = "normal"
+                        if self.max_drones == 0:
+                            self.max_drones = 1
+                    self.new_zone = Zone(self.name, self.type, self.color,
+                                        self.max_drones)
+                    self.zones_lst.append(self.new_zone)
+
 
     def create_drones(self) -> None:
         pass

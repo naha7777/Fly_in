@@ -13,6 +13,7 @@ if __name__ == "__main__":
         # print("[red]bonjour[/red]")
         map = Maps(sys.argv[1])
         manager = Manager(map.config)
+        manager.create_zones()
     except (ValueError, KeyboardInterrupt, KeyError, PermissionError,
             FileNotFoundError, Exception) as e:
         print(f"ERROR: {e}")

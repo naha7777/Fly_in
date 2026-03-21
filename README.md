@@ -110,8 +110,11 @@ Du coup peut etre avant il faut creer la classe zone et creer toutes les zones?
 Et plus tard creer les drones quand l'algo sera fini pour justement effectuer les mouvements trouves par l'algo renvoyes dans la matrice F
 
 1 - parsing qui renvoie un dict DONE
--> creer la classe Manager qui recup le dict et crer les zones a partir de leur classe C'EST PARTI
-2 - creer les zones dans une classe Zone
+-> creer la classe Manager qui recup le dict et crer les zones a partir de leur classe DONE
+2 - creer les zones dans une classe Zone DONE
+-> je sais pas trop quoi faire de ma classe zone par contre
+3.5- Classe connection ?
+ou j'envoie mes connections a ma classe Zone
 
 3 - Construire la matrice C depuis les zones
 4 - lancer l'algo pour obtenir matrice F
