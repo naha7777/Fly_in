@@ -5,3 +5,8 @@ class Zone:
         self.type_zone = type_zone
         self.color = color
         self.max_drones = max_drones
+
+    def get_info(self) -> dict:
+            return({"Name": self.name, "Type_Zone": self.type_zone,
+                    "Color": self.color,
+                    "Max_drones": self.max_drones})

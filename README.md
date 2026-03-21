@@ -110,11 +110,13 @@ Du coup peut etre avant il faut creer la classe zone et creer toutes les zones?
 Et plus tard creer les drones quand l'algo sera fini pour justement effectuer les mouvements trouves par l'algo renvoyes dans la matrice F
 
 1 - parsing qui renvoie un dict DONE
--> creer la classe Manager qui recup le dict et crer les zones a partir de leur classe DONE
+-> creer la classe Manager qui recup le dict et creer les zones a partir de leur classe DONE
 2 - creer les zones dans une classe Zone DONE
 -> je sais pas trop quoi faire de ma classe zone par contre
-3.5- Classe connection ?
+3.5- Classe connection ? DONE
 ou j'envoie mes connections a ma classe Zone
+
+methodes check les connections pour les mettres dans une liste
 
 3 - Construire la matrice C depuis les zones
 4 - lancer l'algo pour obtenir matrice F
@@ -126,3 +128,25 @@ ou j'envoie mes connections a ma classe Zone
 Creer un file d'ou prendre mes couleurs
 
 Tout ca dans gere par la classe Manager
+
+
+Output visuel exemple :
+Affichage couleur sur un terminal indiquant les mouvements des drones et l’état des zones ->
+
+[ start: D1 ] [ waypoint1: empty ] [ waypoint2: empty ] [ goal: empty ]
+
+Turn 1 : D1-waypoint1
+[ start: empty ] [ waypoint1: D1 ] [ waypoint2: empty ] [ goal: empty ]
+
+Turn 2 : D1-waypoint2
+[ start: empty ] [ waypoint1: empty ] [ waypoint2: D1 ] [ goal: empty ]
+
+Turn 3 : D1-goal
+[ start: empty ] [ waypoint1: empty ] [ waypoint2: empty ] [ goal: D1 ]
+
+
+
+
+jai trouve un truc oublie du parsing si je rajoute une metadata : [color=blue] [zone=normal] en les separant ca la prend pas en compte mais ca renvoie pas d'erreur donc renvoyer erreur
+
+sinon continuer la matrice car si bloque on veut 0 lien par exemple

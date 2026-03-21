@@ -14,7 +14,11 @@ if __name__ == "__main__":
         map = Maps(sys.argv[1])
         manager = Manager(map.config)
         manager.create_zones()
+        manager.create_connections()
+        manager.get_co_infos()
+        manager.get_zo_infos()
+        manager.create_matrice()
     except (ValueError, KeyboardInterrupt, KeyError, PermissionError,
-            FileNotFoundError, Exception) as e:
+            FileNotFoundError) as e:
         print(f"ERROR: {e}")
         exit(1)
