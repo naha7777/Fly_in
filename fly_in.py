@@ -1,7 +1,8 @@
-from parsing import Maps
+from sources.parsing import Maps
 import sys
 from rich import print
 from sources.manager import Manager
+from sources.algo import EdmondsKarp
 
 
 if __name__ == "__main__":
@@ -14,10 +15,13 @@ if __name__ == "__main__":
         map = Maps(sys.argv[1])
         manager = Manager(map.config)
         manager.create_zones()
+        manager.get_zo_infos()
         manager.create_connections()
         manager.get_co_infos()
-        manager.get_zo_infos()
-        manager.create_matrice()
+        matrice, s, e = manager.create_matrice()
+        matrice_F, max_mouv = manager.create_algo(EdmondsKarp(matrice, s, e))
+        manager.extract_paths(matrice_F)
+
     except (ValueError, KeyboardInterrupt, KeyError, PermissionError,
             FileNotFoundError) as e:
         print(f"ERROR: {e}")

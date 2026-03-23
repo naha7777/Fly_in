@@ -56,10 +56,10 @@ def _validate_connection(zone_value: str, line: int, tt_line: int,
                          "start and end can't be blocked zones")
 
     if line == tt_line:
-        _check_path_reachability(line)
+        _check_path(line)
 
 
-def _check_path_reachability(line: int) -> None:
+def _check_path(line: int) -> None:
     """
     Check that a path exists from start_hub to end_hub without blocked zones.
     """
@@ -69,7 +69,10 @@ def _check_path_reachability(line: int) -> None:
     is_there_a_path = False
     find_a_path = []
 
-    for v in check_path:
+    for i, v in enumerate(check_path):
+        if i == 0 and validate_names["start_hub"] not in v:
+            raise ValueError(f"line {line}: the first connection must contain "
+                             "the start's zone")
         if validate_names["start_hub"] in v:
             if v[0] not in zones_blocked and v[0] not in find_a_path\
                and v[0] not in zones_blocked:
@@ -223,7 +226,7 @@ def _validate_hub(line: int, new_value: list[str]) -> None:
                          " by brackets")
 
     multiple = any(c == " " for c in new_value[3])
-    metadata_type = ["color", "zone", "max_drones", ""]
+    metadata_type = ["color", "zone", "max_drones"]
     possible_colors = ["blue", "red", "green", "orange", "yellow", "cyan",
                        "pink"]
     possible_zones = ["normal", "blocked", "priority", "restricted"]
@@ -328,6 +331,11 @@ class Maps:
 
         if line.startswith("#") or not line.strip():
             return drones_line, start_line, end_line, None
+
+        if line.count("]") > 1:
+            raise ValueError(f"line {self.line_count}: metadatas can't be in"
+                             " different brackets, please put it in the same"
+                             " brackets with a space between each")
 
         if "#" in line:
             cut = line.split("#")
