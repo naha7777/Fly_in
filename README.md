@@ -76,3 +76,15 @@ Turn 3 : D1-goal
 
 OU MATPLOTLIB CA A L'AIR FUN
 
+la simulation a les drones sur start
+doit prendre le nombre de drones a bouger simultanement + le chemin et envoyer le nombre de drones faire un mouv du chemin, une fois le mouv fait on envoit d'autres drones
+a chaque fois on compte un tour
+si la zone suivante est restricted on se deplace sur connection (on va a la zone en 2 tours)
+
+du coup faut ptete analyser le path d'abord
+on regarde chaque path et on regarde le type de zone
+==
+pour chaque zone (1 sur 2 dans notre path) on regarde son type
+----- d'abord on check si ya une priority parmi toutes, vu que l'algo me sort des chemins opti (minimum de tours) si dans un des chemins il y a la zone prioritaire alors je vais choisir ce chemin plus qu'un autre.
+- si type normal on s'en blc
+- si type restricted on va sur connection

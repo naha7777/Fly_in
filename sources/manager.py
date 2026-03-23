@@ -1,15 +1,16 @@
-# from sources.drones import Drones
+from sources.drones import Drone
 from sources.zones import Zone
 from typing import Any
 from sources.connections import Connection
 from sources.algo import EdmondsKarp
+from sources.simulation import Simulation
 
 
 class Manager:
-    zones_lst: list[Zone] = []
-    connection_lst: list[Connection] = []
-
     def __init__(self, map_valid: dict[str, Any]) -> None:
+        self.zones_lst: list[Zone] = []
+        self.connection_lst: list[Connection] = []
+        self.drones_lst: list[Drone] = []
         self.map_valid = map_valid
         self.nb_drones = self.map_valid["nb_drones"]
         self.zones = {}
@@ -218,5 +219,20 @@ class Manager:
                     queue.append(v)
         return None
 
-    # def create_drones(self) -> None:
-    #     pass
+    def create_drones(self) -> None:
+        for i in range(1, self.nb_drones + 1):
+            new_drone = Drone(i, None)
+            self.drones_lst.append(new_drone)
+
+    def simulate(self, max_mouv: int) -> None:
+        self.max_mouv = max_mouv
+        simulator = Simulation(max_mouv, self.drones_lst, self.all_about_zones,
+                               self.path)
+        simulator.drones_in_start_zone()
+        simulator.get_drones_info()
+        res = 0
+        while res is not None:
+            res = simulator.simulate_turn()
+            if res is not None:
+                print(res)
+

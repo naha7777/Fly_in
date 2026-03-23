@@ -21,6 +21,8 @@ if __name__ == "__main__":
         matrice, s, e = manager.create_matrice()
         matrice_F, max_mouv = manager.create_algo(EdmondsKarp(matrice, s, e))
         manager.extract_paths(matrice_F)
+        manager.create_drones()
+        manager.simulate(max_mouv)
 
     except (ValueError, KeyboardInterrupt, KeyError, PermissionError,
             FileNotFoundError) as e:
