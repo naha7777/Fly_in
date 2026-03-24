@@ -42,12 +42,6 @@ class Manager:
                         self.type = split_data[1].rstrip("]")
                     if "max_drones" in split_data[0]:
                         self.max_drones = int(split_data[1].rstrip("]"))
-                    if self.color is None:
-                        self.color = "white"
-                    if self.type is None:
-                        self.type = "normal"
-                    if self.max_drones == 0:
-                        self.max_drones = 1
                 if k == "start_hub" or k == "end_hub":
                     self.max_drones = self.nb_drones
                 self.new_zone = Zone(self.name, self.type, self.color,
@@ -55,6 +49,11 @@ class Manager:
                 self.zones_lst.append(self.new_zone)
             else:
                 for key, value in v.items():
+                    self.name: str | Any = None
+                    self.metadt: str | Any = None
+                    self.color: str = "white"
+                    self.type: str = "normal"
+                    self.max_drones: int = 1
                     self.name = key
                     split_value = value.split(" ")
                     metadatas = value.split("[")
@@ -65,19 +64,14 @@ class Manager:
                         self.metadt = "[color=white zone=normal max_drones=1]"
                     separate_data = self.metadt.split(" ")
                     for data in separate_data:
+                        data = data.rstrip("]")
                         split_data = data.split("=")
-                        if "color" in split_data[0]:
-                            self.color = split_data[1].rstrip("]")
-                        if "zone" in split_data[0]:
-                            self.type = split_data[1].rstrip("]")
-                        if "max_drones" in split_data[0]:
-                            self.max_drones = int(split_data[1].rstrip("]"))
-                        if self.color is None:
-                            self.color = "white"
-                        if self.type is None:
-                            self.type = "normal"
-                        if self.max_drones == 0:
-                            self.max_drones = 1
+                        if split_data[0] == "color":
+                            self.color = split_data[1]
+                        elif split_data[0] == "zone":
+                            self.type = split_data[1]
+                        elif split_data[0] == "max_drones":
+                            self.max_drones = int(split_data[1])
                     self.new_zone = Zone(self.name, self.type, self.color,
                                          self.max_drones)
                     self.zones_lst.append(self.new_zone)
@@ -145,17 +139,12 @@ class Manager:
             self.matrice[zone_in][zone_out] = int(zone.get("Max_drones") or 1)
 
         for connection in self.all_about_connections:
-            # zone_A_in =\
-            #     self.raw_col[str(connection.get("Actual_Zone"))]["in"]
             zone_A_out =\
                 self.raw_col[str(connection.get("Actual_Zone"))]["out"]
             zone_B_in =\
                  self.raw_col[str(connection.get("Zone_to_move_on"))]["in"]
-            # zone_B_out =\
-            #     self.raw_col[str(connection.get("Zone_to_move_on"))]["out"]
             capacity = int(connection.get("Max_link_capacity") or 1)
             self.matrice[zone_A_out][zone_B_in] = capacity
-            # self.matrice[zone_B_out][zone_A_in] = capacity
         return self.matrice, self.s, self.e
 
     def create_algo(self, algo: EdmondsKarp) -> tuple[list[list[int]], int]:
@@ -167,6 +156,24 @@ class Manager:
         algo.priority = priority_indices
         F, max_drones_mouv = algo.create_matrice_F()
         return F, max_drones_mouv
+
+    def restriction(self, path) -> list[list[str]]:
+        self.newpath = path
+        self.restricteds = []
+        self.path_restricted = []
+        self.separate_paths = []
+        for p in path:
+            for zone in self.all_about_zones:
+                if zone.get("Type_Zone") == "restricted":
+                    self.restricteds.append(zone.get("Name"))
+            for path in self.newpath:
+                for step in path:
+                    if step in self.restricteds:
+                        self.path_restricted.append("wait_for_it")
+                        self.path_restricted.append("wait_for_it")
+                    self.path_restricted.append(step)
+            self.separate_paths.append(self.path_restricted)
+        return self.separate_paths
 
     def extract_paths(self, F: list[list[int]]) -> list[str]:
         self.paths_found = []
@@ -212,6 +219,7 @@ class Manager:
                     else:
                         self.lst.append(string)
             self.path.append(self.lst)
+        self.path = self.restriction(self.path)
         return (self.path)
 
     def bfs_extract(self, F: list[list[int]], s: int,
@@ -237,8 +245,30 @@ class Manager:
 
     def simulate(self, max_mouv: int) -> None:
         self.max_mouv = max_mouv
-        simulator = Simulation(max_mouv, self.drones_lst, self.all_about_zones,
-                               self.path)
+        path_capacities = []
+        for path in self.path:
+            inf = float('inf')
+            for step in path:
+                if "-" not in step:
+                    for zone in self.all_about_zones:
+                        if zone.get("Name") == step:
+                            max_dr = int(zone.get("Max_drones") or 1)
+                            inf = min(inf, max_dr)
+                else:
+                    parts = step.split("-")
+                    for co in self.all_about_connections:
+                        if co.get("Actual_Zone") == parts[0] and co.get("Zone_to_move_on") == parts[1]:
+                            max_dr = int(co.get("Max_link_capacity") or 1)
+                            inf = min(inf, max_dr)
+            path_capacities.append(inf)
+        paired = list(zip(self.path, path_capacities))
+        paired.sort(key=lambda x: x[1], reverse=True)
+        self.path, path_capacities = zip(*paired)
+        self.path = list(self.path)
+        path_capacities = list(path_capacities)
+        simulator = Simulation(self.max_mouv, self.drones_lst,
+                               self.all_about_zones,
+                               self.path, path_capacities)
         simulator.drones_in_start_zone()
         simulator.get_drones_info()
         res = 0
@@ -246,4 +276,3 @@ class Manager:
             res = simulator.simulate_turn()
             if res is not None:
                 print(res)
-

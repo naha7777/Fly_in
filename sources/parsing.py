@@ -228,7 +228,7 @@ def _validate_hub(line: int, new_value: list[str]) -> None:
     multiple = any(c == " " for c in new_value[3])
     metadata_type = ["color", "zone", "max_drones"]
     possible_colors = ["blue", "red", "green", "orange", "yellow", "cyan",
-                       "pink"]
+                       "pink", "purple", "brown"]
     possible_zones = ["normal", "blocked", "priority", "restricted"]
 
     if multiple:
