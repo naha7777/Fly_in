@@ -1,8 +1,10 @@
 class EdmondsKarp:
-    def __init__(self, C: list[list[int]], s: int, e: int) -> None:
+    def __init__(self, C: list[list[int]], s: int, e: int,
+                 priority: set = None) -> None:
         self.C = C
         self.s = s
         self.e = e
+        self.priority = priority or set()
 
     def create_matrice_F(self) -> tuple[list[list[int]], int]:
         self.n = len(self.C)
@@ -25,7 +27,9 @@ class EdmondsKarp:
             return paths[s]
         while queue:
             u = queue.pop(0)
-            for v in range(self.n):
+            neighbors = sorted(range(len(C)),
+                               key=lambda v: v not in self.priority)
+            for v in neighbors:
                 if (C[u][v] - F[u][v] > 0) and v not in paths:
                     paths[v] = paths[u] + [(u, v)]
                     if v == e:

@@ -88,3 +88,9 @@ pour chaque zone (1 sur 2 dans notre path) on regarde son type
 ----- d'abord on check si ya une priority parmi toutes, vu que l'algo me sort des chemins opti (minimum de tours) si dans un des chemins il y a la zone prioritaire alors je vais choisir ce chemin plus qu'un autre.
 - si type normal on s'en blc
 - si type restricted on va sur connection
+
+- gerer le cas ou on recoit plusieurs chemins
+- si ya un seul chemin possible on envoit les drones 2 par 2 par exemple
+
+- si ya plusieurs chemins possibles on peut envoyer drones * nb_chemins : genre nb drones dans un chemin simultanement nb_drones dans autre chemin etc etc
+(dans simulation.py)

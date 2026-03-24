@@ -143,22 +143,28 @@ class Manager:
             zone_in = self.raw_col[str(zone.get("Name"))]["in"]
             zone_out = self.raw_col[str(zone.get("Name"))]["out"]
             self.matrice[zone_in][zone_out] = int(zone.get("Max_drones") or 1)
-            for connection in self.all_about_connections:
-                zone_A_in =\
-                    self.raw_col[str(connection.get("Actual_Zone"))]["in"]
-                zone_A_out =\
-                    self.raw_col[str(connection.get("Actual_Zone"))]["out"]
-                zone_B_in =\
-                    self.raw_col[str(connection.get("Zone_to_move_on"))]["in"]
-                zone_B_out =\
-                    self.raw_col[str(connection.get("Zone_to_move_on"))]["out"]
-                self.matrice[zone_A_out][zone_B_in] =\
-                    int(connection.get("Max_link_capacity") or 1)
-                self.matrice[zone_B_out][zone_A_in] =\
-                    int(connection.get("Max_link_capacity") or 1)
+
+        for connection in self.all_about_connections:
+            # zone_A_in =\
+            #     self.raw_col[str(connection.get("Actual_Zone"))]["in"]
+            zone_A_out =\
+                self.raw_col[str(connection.get("Actual_Zone"))]["out"]
+            zone_B_in =\
+                 self.raw_col[str(connection.get("Zone_to_move_on"))]["in"]
+            # zone_B_out =\
+            #     self.raw_col[str(connection.get("Zone_to_move_on"))]["out"]
+            capacity = int(connection.get("Max_link_capacity") or 1)
+            self.matrice[zone_A_out][zone_B_in] = capacity
+            # self.matrice[zone_B_out][zone_A_in] = capacity
         return self.matrice, self.s, self.e
 
     def create_algo(self, algo: EdmondsKarp) -> tuple[list[list[int]], int]:
+        priority_indices = set()
+        for zone in self.all_about_zones:
+            if zone.get("Type_Zone") == "priority":
+                priority_indices.add(self.raw_col[zone.get("Name")]["in"])
+                priority_indices.add(self.raw_col[zone.get("Name")]["out"])
+        algo.priority = priority_indices
         F, max_drones_mouv = algo.create_matrice_F()
         return F, max_drones_mouv
 
@@ -172,35 +178,40 @@ class Manager:
                 F[u][v] -= flow
             coor_path = self.bfs_extract(F, self.s, self.e)
         self.translate_path = []
-        for k, val in self.raw_col.items():
-            for list in self.paths_found:
-                for tup in list:
-                    x, y = tup
+        for list in self.paths_found:
+            self.one_path = []
+            for tup in list:
+                x, y = tup
+                for k, val in self.raw_col.items():
                     if x in val.values() and y in val.values():
-                        self.translate_path.append(k)
+                        self.one_path.append(k)
                     elif y in val.values():
-                        self.translate_path.append(k)
+                        self.one_path.append(k)
                     elif x in val.values():
-                        self.translate_path.append(f"{k}-")
+                        self.one_path.append(f"{k}-")
+            self.translate_path.append(self.one_path)
         self.path = []
         remove = False
         save_string = None
-        for string in self.translate_path:
-            if not remove:
-                if save_string is not None:
-                    if "-" in save_string:
-                        self.path.append(f"{save_string}{string}")
+        for list in self.translate_path:
+            self.lst = []
+            for string in list:
+                if not remove:
+                    if save_string is not None:
+                        if "-" in save_string:
+                            self.lst.append(f"{save_string}{string}")
+                        else:
+                            self.lst.append(string)
                     else:
-                        self.path.append(string)
-                else:
-                    self.path.append(string)
-                remove = True
-            elif remove:
-                if "-" in string:
-                    save_string = string
-                    remove = False
-                else:
-                    self.path.append(string)
+                        self.lst.append(string)
+                    remove = True
+                elif remove:
+                    if "-" in string:
+                        save_string = string
+                        remove = False
+                    else:
+                        self.lst.append(string)
+            self.path.append(self.lst)
         return (self.path)
 
     def bfs_extract(self, F: list[list[int]], s: int,
