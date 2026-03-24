@@ -213,9 +213,9 @@ def _validate_hub(line: int, new_value: list[str]) -> None:
 
     coordinates = (new_value[1], new_value[2])
     if len(save_coordinates) > 0:
-        if coordinates in save_coordinates:
-            raise ValueError(f"line {line}: two hubs can't have the same"
-                             " coordinates")
+        if coordinates == save_coordinates[0]:
+            raise ValueError(f"line {line}: hubs can't have the same"
+                             " coordinates than start's coordinates")
     save_coordinates.append(coordinates)
 
     if len(new_value) == 3:
@@ -228,7 +228,9 @@ def _validate_hub(line: int, new_value: list[str]) -> None:
     multiple = any(c == " " for c in new_value[3])
     metadata_type = ["color", "zone", "max_drones"]
     possible_colors = ["blue", "red", "green", "orange", "yellow", "cyan",
-                       "pink", "purple", "brown"]
+                       "pink", "purple", "brown", "lime", "magenta", "gold",
+                       "black", "maroon", "darkred", "violet", "crimson",
+                       "rainbow"]
     possible_zones = ["normal", "blocked", "priority", "restricted"]
 
     if multiple:
