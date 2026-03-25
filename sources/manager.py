@@ -42,6 +42,9 @@ class Manager:
                         self.type = split_data[1].rstrip("]")
                     if "max_drones" in split_data[0]:
                         self.max_drones = int(split_data[1].rstrip("]"))
+                    elif split_data[0] == "zone" and split_data[1] == "blocked":
+                        self.type = split_data[1]
+                        self.max_drones = 0
                 if k == "start_hub" or k == "end_hub":
                     self.max_drones = self.nb_drones
                 self.new_zone = Zone(self.name, self.type, self.color,
@@ -68,10 +71,13 @@ class Manager:
                         split_data = data.split("=")
                         if split_data[0] == "color":
                             self.color = split_data[1]
-                        elif split_data[0] == "zone":
+                        if split_data[0] == "zone":
                             self.type = split_data[1]
-                        elif split_data[0] == "max_drones":
+                        if split_data[0] == "max_drones":
                             self.max_drones = int(split_data[1])
+                        if split_data[0] == "zone" and split_data[1] == "blocked":
+                            self.type = split_data[1]
+                            self.max_drones = 0
                     self.new_zone = Zone(self.name, self.type, self.color,
                                          self.max_drones)
                     self.zones_lst.append(self.new_zone)
@@ -136,14 +142,13 @@ class Manager:
         for zone in self.all_about_zones:
             zone_in = self.raw_col[str(zone.get("Name"))]["in"]
             zone_out = self.raw_col[str(zone.get("Name"))]["out"]
-            self.matrice[zone_in][zone_out] = int(zone.get("Max_drones") or 1)
-
+            self.matrice[zone_in][zone_out] = int(zone.get("Max_drones") or 0)
         for connection in self.all_about_connections:
             zone_A_out =\
                 self.raw_col[str(connection.get("Actual_Zone"))]["out"]
             zone_B_in =\
                  self.raw_col[str(connection.get("Zone_to_move_on"))]["in"]
-            capacity = int(connection.get("Max_link_capacity") or 1)
+            capacity = int(connection.get("Max_link_capacity") or 0)
             self.matrice[zone_A_out][zone_B_in] = capacity
         return self.matrice, self.s, self.e
 
@@ -158,20 +163,23 @@ class Manager:
         return F, max_drones_mouv
 
     def restriction(self, path) -> list[list[str]]:
-        self.newpath = path
         self.restricteds = []
-        self.path_restricted = []
+        steps = []
+        for zone in self.all_about_zones:
+            if zone.get("Type_Zone") == "restricted":
+                self.restricteds.append(zone.get("Name"))
         self.separate_paths = []
+        i = 0
         for p in path:
-            for zone in self.all_about_zones:
-                if zone.get("Type_Zone") == "restricted":
-                    self.restricteds.append(zone.get("Name"))
-            for path in self.newpath:
-                for step in path:
-                    if step in self.restricteds:
-                        self.path_restricted.append("wait_for_it")
-                        self.path_restricted.append("wait_for_it")
+            self.path_restricted = []
+            for step in p:
+                steps.append(step)
+                if step in self.restricteds:
+                    self.path_restricted.append(f"{steps[i-1]}-{step}")
                     self.path_restricted.append(step)
+                else:
+                    self.path_restricted.append(step)
+                i += 1
             self.separate_paths.append(self.path_restricted)
         return self.separate_paths
 
@@ -190,11 +198,11 @@ class Manager:
             for tup in list:
                 x, y = tup
                 for k, val in self.raw_col.items():
-                    if x in val.values() and y in val.values():
+                    if x == val["in"] and y == val["out"]:
                         self.one_path.append(k)
-                    elif y in val.values():
+                    elif y == val["out"]:
                         self.one_path.append(k)
-                    elif x in val.values():
+                    elif x == val["in"]:
                         self.one_path.append(f"{k}-")
             self.translate_path.append(self.one_path)
         self.path = []
@@ -218,6 +226,8 @@ class Manager:
                         remove = False
                     else:
                         self.lst.append(string)
+                if string == self.all_about_zones[-1].get("Name"):
+                    break
             self.path.append(self.lst)
         self.path = self.restriction(self.path)
         return (self.path)
@@ -257,15 +267,15 @@ class Manager:
                 else:
                     parts = step.split("-")
                     for co in self.all_about_connections:
-                        if co.get("Actual_Zone") == parts[0] and co.get("Zone_to_move_on") == parts[1]:
+                        if co.get("Actual_Zone") == parts[0] \
+                            and co.get("Zone_to_move_on") == parts[1]:
                             max_dr = int(co.get("Max_link_capacity") or 1)
                             inf = min(inf, max_dr)
             path_capacities.append(inf)
         paired = list(zip(self.path, path_capacities))
-        paired.sort(key=lambda x: x[1], reverse=True)
-        self.path, path_capacities = zip(*paired)
-        self.path = list(self.path)
-        path_capacities = list(path_capacities)
+        paired.sort(key=lambda x: len(x[0]))
+        self.path = [p[0] for p in paired]
+        path_capacities = [p[1] for p in paired]
         simulator = Simulation(self.max_mouv, self.drones_lst,
                                self.all_about_zones,
                                self.path, path_capacities)
@@ -276,3 +286,4 @@ class Manager:
             res = simulator.simulate_turn()
             if res is not None:
                 print(res)
+

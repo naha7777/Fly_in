@@ -43,6 +43,6 @@ OU MATPLOTLIB CA A L'AIR FUN
 
 pas oublier d'autoriser toutes les couleurs
 
-probleme avec restricted car boucle infinie dans medium2 - circular loop
-et derniere map hard : parsing met error car 2 zones aux MEMES coordonnees
-du coup enlever cette gestion du parsing bruh
+
+
+pas opti avec bbbbb.txt par exemple

@@ -230,7 +230,7 @@ def _validate_hub(line: int, new_value: list[str]) -> None:
     possible_colors = ["blue", "red", "green", "orange", "yellow", "cyan",
                        "pink", "purple", "brown", "lime", "magenta", "gold",
                        "black", "maroon", "darkred", "violet", "crimson",
-                       "rainbow"]
+                       "rainbow", "white", "gray"]
     possible_zones = ["normal", "blocked", "priority", "restricted"]
 
     if multiple:
