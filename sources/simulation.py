@@ -66,9 +66,10 @@ class Simulation:
             finished = sum(1 for d in self.drones_lst
                            if d.zone == self.zones[-1].get("Name"))
             if finished == len(self.drones_lst):
-                print(f"\nTurn {self.turns}")
+                print()
                 print(f"{drone.ID}-{drone.zone}", end=" ")
                 return None
+            print()
             return(f"\nTurn {self.turns}")
 
         else:
@@ -77,8 +78,6 @@ class Simulation:
                 y = 0
                 while path[y] != drone.zone:
                     y += 1
-                # if y + 2 <= len(path) - 1:
-                #     drone.move_drone(path[y+2])
                 if y + 1 <= len(path) - 1:
                     drone.move_drone(path[y+1])
                 if drone.zone != self.zones[0].get("Name") \
@@ -115,5 +114,6 @@ class Simulation:
                        self.zones[-1].get("Name"))
         if finished == len(self.drones_lst):
             return None
+        print()
         return(f"\nTurn {self.turns}")
 

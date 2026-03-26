@@ -23,10 +23,11 @@ if __name__ == "__main__":
         manager.extract_paths(matrice_F)
         manager.create_drones()
         manager.simulate(max_mouv)
+        manager.animate()
 
     except (ValueError, KeyboardInterrupt, KeyError, PermissionError,
             FileNotFoundError, Exception) as e:
         print(f"ERROR: {e}")
-        import traceback
-        traceback.print_exc()
+        # import traceback
+        # traceback.print_exc()
         exit(1)

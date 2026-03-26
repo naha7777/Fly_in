@@ -4,6 +4,9 @@ from typing import Any
 from sources.connections import Connection
 from sources.algo import EdmondsKarp
 from sources.simulation import Simulation
+from sources.visual import Visual
+import arcade
+from contextlib import redirect_stdout
 
 
 class Manager:
@@ -25,10 +28,13 @@ class Manager:
             self.color: str = "white"
             self.type: str = "normal"
             self.max_drones: int = 1
+            self.coordinates: tuple[int] = (0, 0)
             if k != "hubs":
                 split_value = v.split(" ")
                 metadatas = v.split("[")
                 self.name = split_value[0]
+                x, y = split_value[1], split_value[2]
+                self.coordinates = int(x), int(y)
                 if len(split_value) >= 4:
                     self.metadt = metadatas[1]
                 else:
@@ -48,7 +54,7 @@ class Manager:
                 if k == "start_hub" or k == "end_hub":
                     self.max_drones = self.nb_drones
                 self.new_zone = Zone(self.name, self.type, self.color,
-                                     self.max_drones)
+                                     self.max_drones, self.coordinates)
                 self.zones_lst.append(self.new_zone)
             else:
                 for key, value in v.items():
@@ -61,6 +67,8 @@ class Manager:
                     split_value = value.split(" ")
                     metadatas = value.split("[")
                     self.name = split_value[0]
+                    x, y = split_value[1], split_value[2]
+                    self.coordinates = int(x), int(y)
                     if len(split_value) >= 4:
                         self.metadt = metadatas[1]
                     else:
@@ -79,7 +87,7 @@ class Manager:
                             self.type = split_data[1]
                             self.max_drones = 0
                     self.new_zone = Zone(self.name, self.type, self.color,
-                                         self.max_drones)
+                                         self.max_drones, self.coordinates)
                     self.zones_lst.append(self.new_zone)
         return self.zones_lst
 
@@ -275,15 +283,29 @@ class Manager:
         paired = list(zip(self.path, path_capacities))
         paired.sort(key=lambda x: len(x[0]))
         self.path = [p[0] for p in paired]
-        path_capacities = [p[1] for p in paired]
+        self.path_capacities = [p[1] for p in paired]
         simulator = Simulation(self.max_mouv, self.drones_lst,
                                self.all_about_zones,
-                               self.path, path_capacities)
+                               self.path, self.path_capacities)
         simulator.drones_in_start_zone()
         simulator.get_drones_info()
         res = 0
-        while res is not None:
-            res = simulator.simulate_turn()
-            if res is not None:
-                print(res)
+        tt_turn = 0
+        with open("output.txt", "w") as f:
+            with redirect_stdout(f):
+                while res is not None:
+                    tt_turn += 1
+                    res = simulator.simulate_turn()
+                print()
+                print()
+                print(f"Total turns: {tt_turn}")
 
+    def animate(self) -> None:
+        simulator = Simulation(self.max_mouv, self.drones_lst,
+                               self.all_about_zones,
+                               self.path, self.path_capacities)
+        all_drones = simulator.get_drones_info()
+        window = Visual(self.all_about_zones, self.all_about_connections,
+                        all_drones)
+        window.setup()
+        arcade.run()

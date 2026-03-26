@@ -1,0 +1,8 @@
+
+D1-junction 
+D1-path_a D2-junction 
+D1-goal D2-path_a D3-junction 
+D2-goal D3-path_a 
+D3-goal 
+
+Total turns: 5
