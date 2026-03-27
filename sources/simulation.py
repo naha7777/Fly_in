@@ -66,7 +66,7 @@ class Simulation:
                 print()
                 return None
             print()
-            return(f"\nTurn {self.turns}")
+            return (f"\nTurn {self.turns}")
 
         else:
             for drone in self.drones_in_simulation:
@@ -79,7 +79,7 @@ class Simulation:
 
             for drone in self.drones_in_simulation:
                 if drone.zone != self.zones[0].get("Name") \
-                    and drone.zone != self.zones[-1].get("Name"):
+                   and drone.zone != self.zones[-1].get("Name"):
                     print(f"{drone.ID}-{drone.zone}", end=" ")
 
             for drone in self.drones_in_simulation:
@@ -87,9 +87,9 @@ class Simulation:
                     print(f"{drone.ID}-{drone.zone}", end=" ")
 
             for drone in self.drones_in_simulation[:]:
-                    if drone.zone == self.zones[-1].get("Name"):
-                        self.drones_in_simulation.remove(drone)
-                        del self.drone_path[drone.ID]
+                if drone.zone == self.zones[-1].get("Name"):
+                    self.drones_in_simulation.remove(drone)
+                    del self.drone_path[drone.ID]
 
             for d in self.drones_lst:
                 if d not in self.dont_put_back:
@@ -118,5 +118,4 @@ class Simulation:
         if finished == len(self.drones_lst):
             return None
         print()
-        return(f"\nTurn {self.turns}")
-
+        return (f"\nTurn {self.turns}")

@@ -83,7 +83,8 @@ class Manager:
                             self.type = split_data[1]
                         if split_data[0] == "max_drones":
                             self.max_drones = int(split_data[1])
-                        if split_data[0] == "zone" and split_data[1] == "blocked":
+                        if split_data[0] == "zone"\
+                           and split_data[1] == "blocked":
                             self.type = split_data[1]
                             self.max_drones = 0
                     self.new_zone = Zone(self.name, self.type, self.color,
@@ -283,7 +284,7 @@ class Manager:
                     parts = step.split("-")
                     for co in self.all_about_connections:
                         if co.get("Actual_Zone") == parts[0] \
-                            and co.get("Zone_to_move_on") == parts[1]:
+                           and co.get("Zone_to_move_on") == parts[1]:
                             max_dr = int(co.get("Max_link_capacity") or 1)
                             inf = min(inf, max_dr)
             path_capacities.append(inf)
@@ -300,7 +301,7 @@ class Manager:
         simulator.get_drones_info()
 
         res = 0
-        tt_turn = 0
+        tt_turn = -1
         with open("output.txt", "w") as f:
             with redirect_stdout(f):
                 while res is not None:

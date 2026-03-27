@@ -1,10 +1,12 @@
 import arcade
 
+
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 800
 SCREEN_TITLE = "Fly_in Visual"
 ZONES = 20
 DRONES = 10
+
 
 class Visual(arcade.Window):
     def __init__(self, zones, connections, drones):
@@ -37,6 +39,11 @@ class Visual(arcade.Window):
         self.drones = drones
         self.drone_lst = arcade.SpriteList()
 
+        self.textnoemie = arcade.Text("METS OUTSANDING STP",
+                                      x=400, y=400, color=arcade.color.BLACK,
+                                      font_size=20, anchor_x="center")
+        self.easter_egg = False
+
         self.moves = []
         with open("output.txt", "r") as f:
             file = f.read()
@@ -55,7 +62,7 @@ class Visual(arcade.Window):
         self.draw_connections = []
         self.draw_max_drones = []
 
-        self.distance_beetween_zones = 150
+        self.distance_zones = 150
 
         self.drone_lst = arcade.SpriteList()
         self.drone_sprites = {}
@@ -70,25 +77,25 @@ class Visual(arcade.Window):
             color_upper = find_color.upper()
             color = getattr(arcade.color, color_upper, arcade.color.WHITE)
             zone_sprite = arcade.SpriteCircle(ZONES, color)
-            zone_sprite.center_x = x * self.distance_beetween_zones
-            zone_sprite.center_y = y * self.distance_beetween_zones
+            zone_sprite.center_x = x * self.distance_zones
+            zone_sprite.center_y = y * self.distance_zones
             self.zone_lst.append(zone_sprite)
 
             text = arcade.Text(
                 text=name,
-                x=x*self.distance_beetween_zones,
-                y=y*self.distance_beetween_zones-40,
-                color= color,
+                x=x*self.distance_zones,
+                y=y*self.distance_zones-40,
+                color=color,
                 font_size=12,
                 anchor_x="center"
-            )
+                )
             self.texts_to_draw.append(text)
 
             max_drones = arcade.Text(
                 text=f"0/{max_d}",
-                x=x*self.distance_beetween_zones+20,
-                y=y*self.distance_beetween_zones+20,
-                color= color,
+                x=x*self.distance_zones+20,
+                y=y*self.distance_zones+20,
+                color=color,
                 font_size=12
                 )
             self.draw_max_drones.append(max_drones)
@@ -99,18 +106,18 @@ class Visual(arcade.Window):
                     ax, ay = zone.get("Coordinates")
                 elif connection.get("Zone_to_move_on") == zone.get("Name"):
                     bx, by = zone.get("Coordinates")
-            self.draw_connections.append((ax*self.distance_beetween_zones,
-                                          ay*self.distance_beetween_zones,
-                                          bx*self.distance_beetween_zones,
-                                          by*self.distance_beetween_zones))
+            self.draw_connections.append((ax*self.distance_zones,
+                                          ay*self.distance_zones,
+                                          bx*self.distance_zones,
+                                          by*self.distance_zones))
 
         for drone in self.drones:
-            for k,v in drone.items():
+            for k, v in drone.items():
                 if k.startswith("Drone"):
                     drone_id = v
             drone_sprite = arcade.SpriteCircle(DRONES, arcade.color.BLACK)
-            drone_sprite.center_x = start_x* self.distance_beetween_zones
-            drone_sprite.center_y = start_y* self.distance_beetween_zones
+            drone_sprite.center_x = start_x * self.distance_zones
+            drone_sprite.center_y = start_y * self.distance_zones
             self.drone_lst.append(drone_sprite)
             self.drone_sprites[drone_id] = drone_sprite
 
@@ -131,6 +138,8 @@ class Visual(arcade.Window):
     def on_key_press(self, symbol, modifiers):
         if symbol == arcade.key.ESCAPE:
             arcade.exit()
+        if symbol == arcade.key.SPACE:
+            self.easter_egg = not self.easter_egg
 
     def on_draw(self):
         self.clear()
@@ -146,6 +155,8 @@ class Visual(arcade.Window):
 
         self.gui_camera.use()
         self.score_text.draw()
+        if self.easter_egg:
+            self.textnoemie.draw()
 
     def move_drone(self):
         moves_for_this_turn = self.moves[self.turn]
@@ -160,8 +171,8 @@ class Visual(arcade.Window):
                     for zone in self.zones:
                         if zone.get("Name") == target_name:
                             dest_coords = zone.get("Coordinates")
-                            dest_x = dest_coords[0] * self.distance_beetween_zones
-                            dest_y = dest_coords[1] * self.distance_beetween_zones
+                            dest_x = dest_coords[0] * self.distance_zones
+                            dest_y = dest_coords[1] * self.distance_zones
                             target_x = (sprite.center_x + dest_x) // 2
                             target_y = (sprite.center_y + dest_y) // 2
                             sprite.target_x = target_x
@@ -177,15 +188,15 @@ class Visual(arcade.Window):
                     for zone in self.zones:
                         if zone.get("Name") == target_name:
                             dest_coords = zone.get("Coordinates")
-                            dest_x = dest_coords[0] * self.distance_beetween_zones
-                            dest_y = dest_coords[1] * self.distance_beetween_zones
+                            dest_x = dest_coords[0] * self.distance_zones
+                            dest_y = dest_coords[1] * self.distance_zones
                             sprite.target_x = dest_x
                             sprite.target_y = dest_y
                             sprite.change_x = (dest_x - sprite.center_x) / 60
                             sprite.change_y = (dest_y - sprite.center_y) / 60
                             break
         self.turn += 1
-        self.pause_for(60 * self.delta_time)
+        self.pause_for(5 * self.delta_time)
 
     def pause_for(self, seconds):
         self.paused = True
