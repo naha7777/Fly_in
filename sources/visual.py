@@ -11,6 +11,10 @@ class Visual(arcade.Window):
         super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
         arcade.set_background_color(arcade.color.WHITE)
         self.time_elapsed = 0
+        self.move_delay = 5.0
+        self.paused = False
+        self.pause_timer = 0
+        self.pause_duration = 0
 
         self.turn = 0
 
@@ -19,7 +23,6 @@ class Visual(arcade.Window):
 
         self.zones = zones
         self.zone_lst = arcade.SpriteList()
-        self.zone_name = arcade.Text(text="", x=0,y=0)
 
         self.camera = arcade.camera.Camera2D()
         self.camera.position = (0, 0)
@@ -27,6 +30,7 @@ class Visual(arcade.Window):
 
         self.texts_to_draw = []
         self.draw_connections = []
+        self.draw_max_drones = []
 
         self.connections = connections
 
@@ -46,10 +50,10 @@ class Visual(arcade.Window):
 
     def setup(self):
         self.zone_lst = arcade.SpriteList()
-        self.zone_name = arcade.Text(text="", x=0,y=0)
 
         self.texts_to_draw = []
         self.draw_connections = []
+        self.draw_max_drones = []
 
         self.distance_beetween_zones = 150
 
@@ -58,17 +62,14 @@ class Visual(arcade.Window):
         start_x, start_y = self.zones[0].get("Coordinates")
 
         for zone in self.zones:
+            zone["drone_on_zone"] = 0
             x, y = zone.get("Coordinates")
             name = zone.get("Name")
-            if zone.get("Type_Zone") == "blocked":
-                circle_color = arcade.color.BLACK
-            elif zone.get("Type_Zone") == "restricted":
-                circle_color = arcade.color.DARK_RED
-            elif zone.get("Type_Zone") == "priority":
-                circle_color = arcade.color.GOLD
-            elif zone.get("Type_Zone") == "normal":
-                circle_color = arcade.color.GREEN
-            zone_sprite = arcade.SpriteCircle(ZONES, circle_color)
+            self.max_d = zone.get("Max_drones")
+            find_color = zone.get("Color")
+            color_upper = find_color.upper()
+            color = getattr(arcade.color, color_upper, arcade.color.WHITE)
+            zone_sprite = arcade.SpriteCircle(ZONES, color)
             zone_sprite.center_x = x * self.distance_beetween_zones
             zone_sprite.center_y = y * self.distance_beetween_zones
             self.zone_lst.append(zone_sprite)
@@ -77,11 +78,20 @@ class Visual(arcade.Window):
                 text=name,
                 x=x*self.distance_beetween_zones,
                 y=y*self.distance_beetween_zones-40,
-                color= circle_color,
+                color= color,
                 font_size=12,
                 anchor_x="center"
             )
             self.texts_to_draw.append(text)
+
+            max_drones = arcade.Text(
+                text=f"0/{self.max_d}",
+                x=x*self.distance_beetween_zones+20,
+                y=y*self.distance_beetween_zones+20,
+                color= color,
+                font_size=12
+                )
+            self.draw_max_drones.append(max_drones)
 
         for connection in self.connections:
             for zone in self.zones:
@@ -126,64 +136,90 @@ class Visual(arcade.Window):
         self.zone_lst.draw()
         for text in self.texts_to_draw:
             text.draw()
+        for max_d in self.draw_max_drones:
+            max_d.draw()
         self.drone_lst.draw()
 
         self.gui_camera.use()
         self.score_text.draw()
 
     def move_drone(self):
-        if self.turn >= len(self.moves):
-            for sprite in self.drone_sprites.values():
-                sprite.change_x = 0
-                sprite.change_y = 0
-            return
-
         moves_for_this_turn = self.moves[self.turn]
         individual_move = moves_for_this_turn.split(" ")
         for move in individual_move:
             split_move = move.split("-")
             if len(split_move) == 3:
-                for zone in self.zones:
-                    if zone.get("Name") == split_move[2]:
-                        dest_coords = zone.get("Coordinates")
-                        dest_x = dest_coords[0]//2 * self.distance_beetween_zones
-                        dest_y = dest_coords[1]//2 * self.distance_beetween_zones
-                        sprite = self.drone_sprites[split_move[0]]
-                        if not sprite:
-                            continue
-                        if sprite:
-                            diff_x = dest_x - sprite.center_x // 2
-                            diff_y = dest_y - sprite.center_y // 2
-                            if abs(diff_x) < 1 and abs(diff_y) < 1:
-                                sprite.change_x = 0
-                                sprite.change_y = 0
-                                sprite.center_x = dest_x // 2
-                                sprite.center_y = dest_y // 2
-                            else:
-                                sprite.change_x = diff_x / 60
-                                sprite.change_y = diff_y / 60
+                drone_id = split_move[0]
+                target_name = split_move[2]
+                sprite = self.drone_sprites.get(drone_id)
+                if sprite:
+                    for zone in self.zones:
+                        if zone.get("Name") == target_name:
+                            dest_coords = zone.get("Coordinates")
+                            dest_x = dest_coords[0] * self.distance_beetween_zones
+                            dest_y = dest_coords[1] * self.distance_beetween_zones
+                            target_x = (sprite.center_x + dest_x) // 2
+                            target_y = (sprite.center_y + dest_y) // 2
+                            sprite.target_x = target_x
+                            sprite.target_y = target_y
+                            sprite.change_x = (target_x - sprite.center_x) / 60
+                            sprite.change_y = (target_y - sprite.center_y) / 60
+                            break
             elif len(split_move) == 2:
-                for zone in self.zones:
-                    if zone.get("Name") == split_move[1]:
-                        dest_coords = zone.get("Coordinates")
-                        dest_x = dest_coords[0] * self.distance_beetween_zones
-                        dest_y = dest_coords[1] * self.distance_beetween_zones
-                        sprite = self.drone_sprites[split_move[0]]
-                        if sprite:
-                            diff_x = dest_x - sprite.center_x
-                            diff_y = dest_y - sprite.center_y
-                            if abs(diff_x) < 1 and abs(diff_y) < 1:
-                                sprite.change_x = 0
-                                sprite.change_y = 0
-                                sprite.center_x = dest_x
-                                sprite.center_y = dest_y
-                            else:
-                                sprite.change_x = diff_x / 60
-                                sprite.change_y = diff_y / 60
+                drone_id = split_move[0]
+                target_name = split_move[1]
+                sprite = self.drone_sprites.get(drone_id)
+                if sprite:
+                    for zone in self.zones:
+                        if zone.get("Name") == target_name:
+                            dest_coords = zone.get("Coordinates")
+                            dest_x = dest_coords[0] * self.distance_beetween_zones
+                            dest_y = dest_coords[1] * self.distance_beetween_zones
+                            sprite.target_x = dest_x
+                            sprite.target_y = dest_y
+                            sprite.change_x = (dest_x - sprite.center_x) / 60
+                            sprite.change_y = (dest_y - sprite.center_y) / 60
+                            break
         self.turn += 1
+        self.pause_for(0.2)
+
+    def pause_for(self, seconds):
+        self.paused = True
+        self.pause_timer = 0
+        self.pause_duration = seconds
 
     def on_update(self, delta_time):
         self.drone_lst.update()
+
+        for zone in self.zones:
+            zone["drone_on_zone"] = 0
+
+        for drone in self.drone_lst:
+            for i, zone_sprite in enumerate(self.zone_lst):
+                if arcade.check_for_collision(drone, zone_sprite):
+                    self.zones[i]["drone_on_zone"] += 1
+
+        for i, zone in enumerate(self.zones):
+            drone_on_zone = zone.get("drone_on_zone", 0)
+            self.draw_max_drones[i].value = f"{drone_on_zone}/{self.max_d}"
+
+        for sprite in self.drone_lst:
+            if hasattr(sprite, 'target_x'):
+                diff_x = sprite.center_x - sprite.target_x
+                diff_y = sprite.center_y - sprite.target_y
+                dist = (diff_x**2 + diff_y**2)**0.5
+                if dist < 2:
+                    sprite.change_x = 0
+                    sprite.change_y = 0
+                    sprite.center_x = sprite.target_x
+                    sprite.center_y = sprite.target_y
+
+        if self.paused:
+            self.pause_timer += delta_time
+            if self.pause_timer >= self.pause_duration:
+                self.paused = False
+            return
+
         if self.turn < len(self.moves):
             self.time_elapsed += delta_time
 
@@ -192,4 +228,3 @@ class Visual(arcade.Window):
                 self.move_drone()
                 self.score_text.text = f"Tour: {self.turn}"
                 self.time_elapsed = 0
-

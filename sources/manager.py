@@ -25,7 +25,7 @@ class Manager:
         for k, v in self.zones.items():
             self.name: str | Any = None
             self.metadt: str | Any = None
-            self.color: str = "white"
+            self.color: str = "black"
             self.type: str = "normal"
             self.max_drones: int = 1
             self.coordinates: tuple[int] = (0, 0)
@@ -38,7 +38,7 @@ class Manager:
                 if len(split_value) >= 4:
                     self.metadt = metadatas[1]
                 else:
-                    self.metadt = "[color=white zone=normal max_drones=1]"
+                    self.metadt = "[color=black zone=normal max_drones=1]"
                 separate_data = self.metadt.split(" ")
                 for data in separate_data:
                     split_data = data.split("=")
@@ -60,7 +60,7 @@ class Manager:
                 for key, value in v.items():
                     self.name: str | Any = None
                     self.metadt: str | Any = None
-                    self.color: str = "white"
+                    self.color: str = "black"
                     self.type: str = "normal"
                     self.max_drones: int = 1
                     self.name = key
@@ -72,7 +72,7 @@ class Manager:
                     if len(split_value) >= 4:
                         self.metadt = metadatas[1]
                     else:
-                        self.metadt = "[color=white zone=normal max_drones=1]"
+                        self.metadt = "[color=black zone=normal max_drones=1]"
                     separate_data = self.metadt.split(" ")
                     for data in separate_data:
                         data = data.rstrip("]")
