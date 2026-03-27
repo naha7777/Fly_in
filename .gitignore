@@ -1,5 +1,6 @@
-LICENSE
 .venv
 __pycache__
 uv.lock
 .python-version
+sources/__pycache__
+.mypy_cache

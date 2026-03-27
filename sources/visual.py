@@ -65,7 +65,7 @@ class Visual(arcade.Window):
             zone["drone_on_zone"] = 0
             x, y = zone.get("Coordinates")
             name = zone.get("Name")
-            self.max_d = zone.get("Max_drones")
+            max_d = zone.get("Max_drones")
             find_color = zone.get("Color")
             color_upper = find_color.upper()
             color = getattr(arcade.color, color_upper, arcade.color.WHITE)
@@ -85,7 +85,7 @@ class Visual(arcade.Window):
             self.texts_to_draw.append(text)
 
             max_drones = arcade.Text(
-                text=f"0/{self.max_d}",
+                text=f"0/{max_d}",
                 x=x*self.distance_beetween_zones+20,
                 y=y*self.distance_beetween_zones+20,
                 color= color,
@@ -127,6 +127,10 @@ class Visual(arcade.Window):
             self.camera.zoom += zoom_speed
         elif scroll_y < 0:
             self.camera.zoom = max(0.1, self.camera.zoom - zoom_speed)
+
+    def on_key_press(self, symbol, modifiers):
+        if symbol == arcade.key.ESCAPE:
+            arcade.exit()
 
     def on_draw(self):
         self.clear()
@@ -181,7 +185,7 @@ class Visual(arcade.Window):
                             sprite.change_y = (dest_y - sprite.center_y) / 60
                             break
         self.turn += 1
-        self.pause_for(0.2)
+        self.pause_for(60 * self.delta_time)
 
     def pause_for(self, seconds):
         self.paused = True
@@ -200,8 +204,9 @@ class Visual(arcade.Window):
                     self.zones[i]["drone_on_zone"] += 1
 
         for i, zone in enumerate(self.zones):
+            max_d = zone.get("Max_drones")
             drone_on_zone = zone.get("drone_on_zone", 0)
-            self.draw_max_drones[i].value = f"{drone_on_zone}/{self.max_d}"
+            self.draw_max_drones[i].value = f"{drone_on_zone}/{max_d}"
 
         for sprite in self.drone_lst:
             if hasattr(sprite, 'target_x'):

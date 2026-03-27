@@ -32,15 +32,24 @@ class Simulation:
 
     def simulate_turn(self) -> int | None:
         self.turns += 1
-        max_drones = 0
+        # max_drones = 0
         drone_sent = 0
         path_index = 0
 
         if len(self.paths) == 1:
-            for drone in self.drones_in_simulation[:]:
-                if drone.zone == self.zones[-1].get("Name"):
+            for drone in self.drones_in_simulation:
+                self.register_mouv.append(f"{drone.ID}-{drone.zone}")
+                path = self.paths[0]
+                i = 0
+                while path[i] != drone.zone:
+                    i += 1
+                if i + 1 < len(path):
+                    drone.move_drone(path[i+1])
+
+            for drone in self.drones_in_simulation:
+                if drone.zone != self.zones[0].get("Name"):
                     print(f"{drone.ID}-{drone.zone}", end=" ")
-                    self.drones_in_simulation.remove(drone)
+
             for d in self.drones_lst:
                 if d not in self.dont_put_back:
                     if drone_sent < self.max_mouv:
@@ -50,24 +59,11 @@ class Simulation:
                     else:
                         drone_sent = 0
                         break
-            for drone in self.drones_in_simulation:
-                self.register_mouv.append(f"{drone.ID}-{drone.zone}")
-                if drone.zone != self.zones[0].get("Name"):
-                    print(f"{drone.ID}-{drone.zone}", end=" ")
-                for p in self.paths:
-                    i = 0
-                    while p[i] != drone.zone:
-                        i += 1
-                for p in self.paths:
-                    if max_drones != len(self.drones_in_simulation):
-                        if i + 1 < len(p):
-                            drone.move_drone(p[i+1])
-                        max_drones += 1
+
             finished = sum(1 for d in self.drones_lst
                            if d.zone == self.zones[-1].get("Name"))
             if finished == len(self.drones_lst):
                 print()
-                print(f"{drone.ID}-{drone.zone}", end=" ")
                 return None
             print()
             return(f"\nTurn {self.turns}")
@@ -80,14 +76,21 @@ class Simulation:
                     y += 1
                 if y + 1 <= len(path) - 1:
                     drone.move_drone(path[y+1])
+
+            for drone in self.drones_in_simulation:
                 if drone.zone != self.zones[0].get("Name") \
                     and drone.zone != self.zones[-1].get("Name"):
                     print(f"{drone.ID}-{drone.zone}", end=" ")
-            for drone in self.drones_in_simulation[:]:
+
+            for drone in self.drones_in_simulation:
                 if drone.zone == self.zones[-1].get("Name"):
                     print(f"{drone.ID}-{drone.zone}", end=" ")
-                    self.drones_in_simulation.remove(drone)
-                    del self.drone_path[drone.ID]
+
+            for drone in self.drones_in_simulation[:]:
+                    if drone.zone == self.zones[-1].get("Name"):
+                        self.drones_in_simulation.remove(drone)
+                        del self.drone_path[drone.ID]
+
             for d in self.drones_lst:
                 if d not in self.dont_put_back:
                     if drone_sent < self.max_mouv:

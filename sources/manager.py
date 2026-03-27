@@ -266,6 +266,13 @@ class Manager:
         path_capacities = []
         for path in self.path:
             inf = float('inf')
+            i = 0
+            for co in self.all_about_connections:
+                if path[i] == co.get("Actual_Zone")\
+                     and path[i+1] == co.get("Zone_to_move_on"):
+                    max_lk = int(co.get("Max_link_capacity") or 1)
+                    inf = min(inf, max_lk)
+                    i += 1
             for step in path:
                 if "-" not in step:
                     for zone in self.all_about_zones:
@@ -280,15 +287,18 @@ class Manager:
                             max_dr = int(co.get("Max_link_capacity") or 1)
                             inf = min(inf, max_dr)
             path_capacities.append(inf)
+
         paired = list(zip(self.path, path_capacities))
         paired.sort(key=lambda x: len(x[0]))
         self.path = [p[0] for p in paired]
         self.path_capacities = [p[1] for p in paired]
+
         simulator = Simulation(self.max_mouv, self.drones_lst,
                                self.all_about_zones,
                                self.path, self.path_capacities)
         simulator.drones_in_start_zone()
         simulator.get_drones_info()
+
         res = 0
         tt_turn = 0
         with open("output.txt", "w") as f:
