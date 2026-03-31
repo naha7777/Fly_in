@@ -1,6 +1,5 @@
 from sources.parsing import Maps
 import sys
-from rich import print
 from sources.manager import Manager
 from sources.algo import EdmondsKarp
 
@@ -11,7 +10,6 @@ if __name__ == "__main__":
             raise ValueError("invalid number of arguments")
         if not sys.argv[1].endswith(".txt"):
             raise ValueError("file must be a .txt")
-        # print("[red]bonjour[/red]")
         map = Maps(sys.argv[1])
         manager = Manager(map.config)
         manager.create_zones()

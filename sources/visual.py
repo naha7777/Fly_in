@@ -1,4 +1,5 @@
 import arcade
+from typing import Any
 
 
 SCREEN_WIDTH = 800
@@ -8,15 +9,29 @@ ZONES = 20
 DRONES = 10
 
 
+class DroneSprite(arcade.SpriteCircle):
+    def __init__(self, radius: int, color: tuple[int, int, int, int]) -> None:
+        """Initialize DroneSprite adding target_x and target_y to
+           arcade.SpriteCircle with a radius and a color"""
+        super().__init__(radius, color)
+        self.target_x: float = 0.0
+        self.target_y: float = 0.0
+
+
 class Visual(arcade.Window):
-    def __init__(self, zones, connections, drones):
-        super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+    def __init__(self, zones: list[dict[str, Any]],
+                 connections: list[dict[str, Any]],
+                 drones: list[dict[str, Any]]) -> None:
+        """Initialize Visual with all informations about zones, connections
+           and drones"""
+        super().__init__(width=SCREEN_WIDTH, height=SCREEN_HEIGHT,
+                         title=SCREEN_TITLE)
         arcade.set_background_color(arcade.color.WHITE)
-        self.time_elapsed = 0
+        self.time_elapsed: float = 0
         self.move_delay = 5.0
         self.paused = False
-        self.pause_timer = 0
-        self.pause_duration = 0
+        self.pause_timer: float = 0
+        self.pause_duration: float = 0
 
         self.turn = 0
 
@@ -24,27 +39,29 @@ class Visual(arcade.Window):
         self.drone_x_pixels_per_second = 0
 
         self.zones = zones
-        self.zone_lst = arcade.SpriteList()
+        self.zone_lst: arcade.SpriteList[arcade.SpriteCircle] =\
+            arcade.SpriteList()
 
         self.camera = arcade.camera.Camera2D()
         self.camera.position = (0, 0)
         self.gui_camera = arcade.camera.Camera2D()
 
-        self.texts_to_draw = []
-        self.draw_connections = []
-        self.draw_max_drones = []
+        self.texts_to_draw: list[arcade.Text] = []
+        self.draw_connections: list[tuple[float, float, float, float]] = []
+        self.draw_max_drones: list[arcade.Text] = []
 
         self.connections = connections
 
         self.drones = drones
-        self.drone_lst = arcade.SpriteList()
+        self.drone_lst: arcade.SpriteList[DroneSprite] =\
+            arcade.SpriteList()
 
-        self.textnoemie = arcade.Text("METS OUTSANDING STP",
-                                      x=400, y=400, color=arcade.color.BLACK,
-                                      font_size=20, anchor_x="center")
+        self.egg = arcade.Text("METS OUTSANDING STP", x=400, y=400,
+                               color=arcade.color.BLACK, font_size=20,
+                               anchor_x="center")
         self.easter_egg = False
 
-        self.moves = []
+        self.moves: list[str] = []
         with open("output.txt", "r") as f:
             file = f.read()
         lines = file.split("\n")
@@ -55,26 +72,31 @@ class Visual(arcade.Window):
         self.score_text = arcade.Text(text="Tour: 0", x=20, y=750,
                                       color=arcade.color.BLACK, font_size=15)
 
-    def setup(self):
+    def setup(self) -> None:
+        """Setup variables we will draw/update later"""
         self.zone_lst = arcade.SpriteList()
-
-        self.texts_to_draw = []
-        self.draw_connections = []
-        self.draw_max_drones = []
 
         self.distance_zones = 150
 
-        self.drone_lst = arcade.SpriteList()
-        self.drone_sprites = {}
-        start_x, start_y = self.zones[0].get("Coordinates")
+        self.drone_sprites: dict[str, DroneSprite] = {}
+
+        start_coords: tuple[int, int] =\
+            self.zones[0].get("Coordinates", (0, 0))
+        start_x, start_y = tuple(start_coords)
 
         for zone in self.zones:
             zone["drone_on_zone"] = 0
-            x, y = zone.get("Coordinates")
-            name = zone.get("Name")
+            coords = zone.get("Coordinates")
+            if coords is None:
+                continue
+            x, y = coords
+
+            name = zone.get("Name") or ""
             max_d = zone.get("Max_drones")
-            find_color = zone.get("Color")
+
+            find_color = zone.get("Color") or "black"
             color_upper = find_color.upper()
+
             color = getattr(arcade.color, color_upper, arcade.color.WHITE)
             zone_sprite = arcade.SpriteCircle(ZONES, color)
             zone_sprite.center_x = x * self.distance_zones
@@ -103,9 +125,15 @@ class Visual(arcade.Window):
         for connection in self.connections:
             for zone in self.zones:
                 if connection.get("Actual_Zone") == zone.get("Name"):
-                    ax, ay = zone.get("Coordinates")
+                    coor = zone.get("Coordinates")
+                    if coor is None:
+                        continue
+                    ax, ay = coor
                 elif connection.get("Zone_to_move_on") == zone.get("Name"):
-                    bx, by = zone.get("Coordinates")
+                    coor = zone.get("Coordinates")
+                    if coor is None:
+                        continue
+                    bx, by = coor
             self.draw_connections.append((ax*self.distance_zones,
                                           ay*self.distance_zones,
                                           bx*self.distance_zones,
@@ -115,33 +143,39 @@ class Visual(arcade.Window):
             for k, v in drone.items():
                 if k.startswith("Drone"):
                     drone_id = v
-            drone_sprite = arcade.SpriteCircle(DRONES, arcade.color.BLACK)
+            drone_sprite = DroneSprite(DRONES, arcade.color.BLACK)
             drone_sprite.center_x = start_x * self.distance_zones
             drone_sprite.center_y = start_y * self.distance_zones
             self.drone_lst.append(drone_sprite)
             self.drone_sprites[drone_id] = drone_sprite
 
-    def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
+    def on_mouse_drag(self, x: int, y: int, dx: int, dy: int, buttons: int,
+                      modifiers: int) -> None:
+        """Move camera with the mouse"""
         if buttons == arcade.MOUSE_BUTTON_LEFT:
             curr_x, curr_y = self.camera.position
             new_x = curr_x - dx
             new_y = curr_y - dy
             self.camera.position = (new_x, new_y)
 
-    def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
+    def on_mouse_scroll(self, x: int, y: int, scroll_x: float,
+                        scroll_y: float) -> None:
+        """Scroll to zoom"""
         zoom_speed = 0.1
         if scroll_y > 0:
             self.camera.zoom += zoom_speed
         elif scroll_y < 0:
             self.camera.zoom = max(0.1, self.camera.zoom - zoom_speed)
 
-    def on_key_press(self, symbol, modifiers):
+    def on_key_press(self, symbol: int, modifiers: int) -> None:
+        """Close the window with escape"""
         if symbol == arcade.key.ESCAPE:
             arcade.exit()
         if symbol == arcade.key.SPACE:
             self.easter_egg = not self.easter_egg
 
-    def on_draw(self):
+    def on_draw(self) -> None:
+        """Draw the zones, drones, connections, turns and text"""
         self.clear()
         self.camera.use()
         for co in self.draw_connections:
@@ -156,9 +190,11 @@ class Visual(arcade.Window):
         self.gui_camera.use()
         self.score_text.draw()
         if self.easter_egg:
-            self.textnoemie.draw()
+            self.egg.draw()
 
-    def move_drone(self):
+    def move_drone(self) -> None:
+        """Move drones following the file with all drones movements made by the
+           simulation"""
         moves_for_this_turn = self.moves[self.turn]
         individual_move = moves_for_this_turn.split(" ")
         for move in individual_move:
@@ -171,10 +207,12 @@ class Visual(arcade.Window):
                     for zone in self.zones:
                         if zone.get("Name") == target_name:
                             dest_coords = zone.get("Coordinates")
+                            if dest_coords is None:
+                                continue
                             dest_x = dest_coords[0] * self.distance_zones
                             dest_y = dest_coords[1] * self.distance_zones
-                            target_x = (sprite.center_x + dest_x) // 2
-                            target_y = (sprite.center_y + dest_y) // 2
+                            target_x: float = (sprite.center_x + dest_x) // 2
+                            target_y: float = (sprite.center_y + dest_y) // 2
                             sprite.target_x = target_x
                             sprite.target_y = target_y
                             sprite.change_x = (target_x - sprite.center_x) / 60
@@ -188,6 +226,8 @@ class Visual(arcade.Window):
                     for zone in self.zones:
                         if zone.get("Name") == target_name:
                             dest_coords = zone.get("Coordinates")
+                            if dest_coords is None:
+                                continue
                             dest_x = dest_coords[0] * self.distance_zones
                             dest_y = dest_coords[1] * self.distance_zones
                             sprite.target_x = dest_x
@@ -198,12 +238,15 @@ class Visual(arcade.Window):
         self.turn += 1
         self.pause_for(5 * self.delta_time)
 
-    def pause_for(self, seconds):
+    def pause_for(self, seconds: float) -> None:
+        """Do a pause for the drones in movements for the seconds we want"""
         self.paused = True
         self.pause_timer = 0
         self.pause_duration = seconds
 
-    def on_update(self, delta_time):
+    def on_update(self, delta_time: float) -> None:
+        """Update the time, the turns, call the move drones function until it
+        find the end zone"""
         self.drone_lst.update()
 
         for zone in self.zones:

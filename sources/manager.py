@@ -11,24 +11,27 @@ from contextlib import redirect_stdout
 
 class Manager:
     def __init__(self, map_valid: dict[str, Any]) -> None:
+        """Initialize the Manager with a validated map configuration."""
         self.zones_lst: list[Zone] = []
         self.connection_lst: list[Connection] = []
         self.drones_lst: list[Drone] = []
         self.map_valid = map_valid
         self.nb_drones = self.map_valid["nb_drones"]
         self.zones = {}
+        self.path: list[list[str]] = []
         for k, v in self.map_valid.items():
             if k != "nb_drones" and k != "connections":
                 self.zones[k] = v
 
     def create_zones(self) -> list[Zone]:
+        """Parse map data and instantiate all Zone objects."""
         for k, v in self.zones.items():
             self.name: str | Any = None
             self.metadt: str | Any = None
             self.color: str = "black"
             self.type: str = "normal"
             self.max_drones: int = 1
-            self.coordinates: tuple[int] = (0, 0)
+            self.coordinates: tuple[int, int] = (0, 0)
             if k != "hubs":
                 split_value = v.split(" ")
                 metadatas = v.split("[")
@@ -42,14 +45,15 @@ class Manager:
                 separate_data = self.metadt.split(" ")
                 for data in separate_data:
                     split_data = data.split("=")
+                    meta_val = split_data[1]
                     if "color" in split_data[0]:
-                        self.color = split_data[1].rstrip("]")
+                        self.color = meta_val.rstrip("]")
                     if "zone" in split_data[0]:
-                        self.type = split_data[1].rstrip("]")
+                        self.type = meta_val.rstrip("]")
                     if "max_drones" in split_data[0]:
-                        self.max_drones = int(split_data[1].rstrip("]"))
-                    elif split_data[0] == "zone" and split_data[1] == "blocked":
-                        self.type = split_data[1]
+                        self.max_drones = int(meta_val.rstrip("]"))
+                    elif split_data[0] == "zone" and meta_val == "blocked":
+                        self.type = meta_val
                         self.max_drones = 0
                 if k == "start_hub" or k == "end_hub":
                     self.max_drones = self.nb_drones
@@ -58,46 +62,48 @@ class Manager:
                 self.zones_lst.append(self.new_zone)
             else:
                 for key, value in v.items():
-                    self.name: str | Any = None
-                    self.metadt: str | Any = None
-                    self.color: str = "black"
-                    self.type: str = "normal"
-                    self.max_drones: int = 1
-                    self.name = key
+                    name: str | Any = None
+                    metadt: str | Any = None
+                    color: str = "black"
+                    type: str = "normal"
+                    max_drones: int = 1
+                    name = key
                     split_value = value.split(" ")
                     metadatas = value.split("[")
-                    self.name = split_value[0]
+                    name = split_value[0]
                     x, y = split_value[1], split_value[2]
-                    self.coordinates = int(x), int(y)
+                    coordinates = int(x), int(y)
                     if len(split_value) >= 4:
-                        self.metadt = metadatas[1]
+                        metadt = metadatas[1]
                     else:
-                        self.metadt = "[color=black zone=normal max_drones=1]"
-                    separate_data = self.metadt.split(" ")
+                        metadt = "[color=black zone=normal max_drones=1]"
+                    separate_data = metadt.split(" ")
                     for data in separate_data:
                         data = data.rstrip("]")
                         split_data = data.split("=")
                         if split_data[0] == "color":
-                            self.color = split_data[1]
+                            color = split_data[1]
                         if split_data[0] == "zone":
-                            self.type = split_data[1]
+                            type = split_data[1]
                         if split_data[0] == "max_drones":
-                            self.max_drones = int(split_data[1])
+                            max_drones = int(split_data[1])
                         if split_data[0] == "zone"\
                            and split_data[1] == "blocked":
-                            self.type = split_data[1]
-                            self.max_drones = 0
-                    self.new_zone = Zone(self.name, self.type, self.color,
-                                         self.max_drones, self.coordinates)
+                            type = split_data[1]
+                            max_drones = 0
+                    self.new_zone = Zone(name, type, color,
+                                         max_drones, coordinates)
                     self.zones_lst.append(self.new_zone)
         return self.zones_lst
 
     def get_zo_infos(self) -> None:
+        """Populate all_about_zones with info dicts from each zone."""
         self.all_about_zones = []
         for zone in self.zones_lst:
             self.all_about_zones.append(zone.get_info())
 
     def create_connections(self) -> None:
+        """Parse map data and instantiate all Connection objects."""
         self.co_name = "connection"
         self.actual_zone = "start"
         self.zone_to_move_on = "end"
@@ -132,22 +138,27 @@ class Manager:
                 self.connection_lst.append(self.new_connection)
 
     def get_co_infos(self) -> None:
+        """
+        Populate all_about_connections with info dicts from each connection.
+        """
         self.all_about_connections = []
         for connection in self.connection_lst:
             self.all_about_connections.append(connection.get_info())
 
     def create_matrice(self) -> tuple[list[list[int]], int, int]:
+        """Build the capacity matrix for the flow network and return it
+           with source and sink indices."""
         self.matrice = []
         size = (len(self.all_about_zones)) * 2
         for i in range(size):
             self.matrice.append([0] * size)
-        self.raw_col: dict[str, dict[str, int]] = {}
+        self.raw_col = {}
         i = 0
-        self.s: int = i
+        self.s = i
         for zone in self.all_about_zones:
             self.raw_col[str(zone.get("Name"))] = {"in": i, "out": i+1}
             i += 2
-        self.e: int = i - 1
+        self.e = i - 1
         for zone in self.all_about_zones:
             zone_in = self.raw_col[str(zone.get("Name"))]["in"]
             zone_out = self.raw_col[str(zone.get("Name"))]["out"]
@@ -156,22 +167,27 @@ class Manager:
             zone_A_out =\
                 self.raw_col[str(connection.get("Actual_Zone"))]["out"]
             zone_B_in =\
-                 self.raw_col[str(connection.get("Zone_to_move_on"))]["in"]
+                self.raw_col[str(connection.get("Zone_to_move_on"))]["in"]
             capacity = int(connection.get("Max_link_capacity") or 0)
             self.matrice[zone_A_out][zone_B_in] = capacity
         return self.matrice, self.s, self.e
 
     def create_algo(self, algo: EdmondsKarp) -> tuple[list[list[int]], int]:
+        """Run Edmonds-Karp on the capacity matrix and return the flow
+           matrix and max drone movements."""
         priority_indices = set()
         for zone in self.all_about_zones:
             if zone.get("Type_Zone") == "priority":
-                priority_indices.add(self.raw_col[zone.get("Name")]["in"])
-                priority_indices.add(self.raw_col[zone.get("Name")]["out"])
+                zone_name = zone.get("Name")
+                priority_indices.add(self.raw_col[str(zone_name)]["in"])
+                priority_indices.add(self.raw_col[str(zone_name)]["out"])
         algo.priority = priority_indices
         F, max_drones_mouv = algo.create_matrice_F()
         return F, max_drones_mouv
 
-    def restriction(self, path) -> list[list[str]]:
+    def restriction(self, path: list[list[str]]) -> list[list[str]]:
+        """Insert restriction markers into paths that pass through
+           restricted zones."""
         self.restricteds = []
         steps = []
         for zone in self.all_about_zones:
@@ -192,57 +208,65 @@ class Manager:
             self.separate_paths.append(self.path_restricted)
         return self.separate_paths
 
-    def extract_paths(self, F: list[list[int]]) -> list[str]:
-        self.paths_found = []
+    def extract_paths(self, F: list[list[int]]) -> list[list[str]]:
+        """Extract all individual paths from the flow matrix and translate
+           them to zone name sequences."""
+        local_paths_found: list[list[tuple[int, int]]] = []
         coor_path = self.bfs_extract(F, self.s, self.e)
         while coor_path is not None:
             flow = min(F[u][v] for u, v in coor_path)
-            self.paths_found.append(coor_path)
+            local_paths_found.append(coor_path)
             for u, v in coor_path:
                 F[u][v] -= flow
             coor_path = self.bfs_extract(F, self.s, self.e)
-        self.translate_path = []
-        for list in self.paths_found:
-            self.one_path = []
-            for tup in list:
+
+        translate_path: list[list[str]] = []
+
+        for p in local_paths_found:
+            one_path: list[str] = []
+            for tup in p:
                 x, y = tup
                 for k, val in self.raw_col.items():
                     if x == val["in"] and y == val["out"]:
-                        self.one_path.append(k)
+                        one_path.append(str(k))
                     elif y == val["out"]:
-                        self.one_path.append(k)
+                        one_path.append(str(k))
                     elif x == val["in"]:
-                        self.one_path.append(f"{k}-")
-            self.translate_path.append(self.one_path)
-        self.path = []
+                        one_path.append(f"{str(k)}-")
+            translate_path.append(one_path)
+
+        path: list[list[str]] = []
         remove = False
-        save_string = None
-        for list in self.translate_path:
-            self.lst = []
-            for string in list:
+        save_string: str | None = None
+        for tp in translate_path:
+            lst: list[str] = []
+            for stri in tp:
+                string = str(stri)
                 if not remove:
                     if save_string is not None:
                         if "-" in save_string:
-                            self.lst.append(f"{save_string}{string}")
+                            lst.append(f"{save_string}{string}")
                         else:
-                            self.lst.append(string)
+                            lst.append(string)
                     else:
-                        self.lst.append(string)
+                        lst.append(string)
                     remove = True
                 elif remove:
                     if "-" in string:
                         save_string = string
                         remove = False
                     else:
-                        self.lst.append(string)
+                        lst.append(string)
                 if string == self.all_about_zones[-1].get("Name"):
                     break
-            self.path.append(self.lst)
-        self.path = self.restriction(self.path)
-        return (self.path)
+            path.append(lst)
+        self.path = self.restriction(path)
+        return self.path
 
     def bfs_extract(self, F: list[list[int]], s: int,
                     e: int) -> list[tuple[int, int]] | None:
+        """Find one augmenting path from s to e in F using BFS, or
+           return None if none exists."""
         queue = [s]
         paths: dict[int, list[tuple[int, int]]] = {s: []}
         if s == e:
@@ -258,11 +282,15 @@ class Manager:
         return None
 
     def create_drones(self) -> None:
+        """Instantiate all drone objects based on the configured drone
+           count."""
         for i in range(1, self.nb_drones + 1):
             new_drone = Drone(i, None)
             self.drones_lst.append(new_drone)
 
     def simulate(self, max_mouv: int) -> None:
+        """Run the full simulation and write the turn-by-turn output to
+           output.txt."""
         self.max_mouv = max_mouv
         path_capacities = []
         for path in self.path:
@@ -300,7 +328,7 @@ class Manager:
         simulator.drones_in_start_zone()
         simulator.get_drones_info()
 
-        res = 0
+        res: Any = 0
         tt_turn = -1
         with open("output.txt", "w") as f:
             with redirect_stdout(f):
@@ -312,6 +340,7 @@ class Manager:
                 print(f"Total turns: {tt_turn}")
 
     def animate(self) -> None:
+        """Launch the arcade window to visually animate the simulation."""
         simulator = Simulation(self.max_mouv, self.drones_lst,
                                self.all_about_zones,
                                self.path, self.path_capacities)

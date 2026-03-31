@@ -1,38 +1,45 @@
 from sources.drones import Drone
+from typing import Any
 
 
 class Simulation:
-    def __init__(self, max_mouv: int, drones_lst: list[Drone],
-                 zones: list, paths: list, path_capacities: list[int]) -> None:
-        self.max_mouv = max_mouv
+    def __init__(self, max_moves: int, drones_lst: list[Drone],
+                 zones: list[dict[str, Any]], paths: list[list[str]],
+                 path_capacities: list[float]) -> None:
+        """Initialize Simulation with a maximum number of moves, informations
+           about drones, zones, paths and path capacities."""
+        self.max_moves = max_moves
         self.drones_lst = drones_lst
         self.zones = zones
         self.paths = paths
-        self.max_mouv = max_mouv
+        self.max_moves = max_moves
         self.drones_lst = drones_lst
         self.zones = zones
         self.paths = paths
-        self.drones_in_simulation = []
-        self.dont_put_back = []
-        self.register_mouv = []
+        self.drones_in_simulation: list[Drone] = []
+        self.dont_put_back: list[Drone] = []
+        self.register_mouv: list[str] = []
         self.turns = 0
-        self.drone_path = {}
+        self.drone_path: dict[str, int] = {}
         self.path_capacities = path_capacities
 
     def drones_in_start_zone(self) -> None:
-        start = self.zones[0].get("Name")
+        """Call the method putting all drones in start zone"""
+        start: str = str(self.zones[0].get("Name"))
         for drone in self.drones_lst:
             drone.add_drone_to_start(start)
 
-    def get_drones_info(self) -> list:
+    def get_drones_info(self) -> list[dict[str, Any]]:
+        """Put all informations about drones on a list and return it"""
         self.all_id_drones = []
         for drone in self.drones_lst:
             self.all_id_drones.append(drone.get_info())
         return self.all_id_drones
 
-    def simulate_turn(self) -> int | None:
+    def simulate_turn(self) -> str | None:
+        """Simulate a turn : count the number of turns and move the drones
+           following the path/s, write all drones movements in one line"""
         self.turns += 1
-        # max_drones = 0
         drone_sent = 0
         path_index = 0
 
@@ -52,7 +59,7 @@ class Simulation:
 
             for d in self.drones_lst:
                 if d not in self.dont_put_back:
-                    if drone_sent < self.max_mouv:
+                    if drone_sent < self.max_moves:
                         self.drones_in_simulation.append(d)
                         self.dont_put_back.append(d)
                         drone_sent += 1
@@ -93,7 +100,7 @@ class Simulation:
 
             for d in self.drones_lst:
                 if d not in self.dont_put_back:
-                    if drone_sent < self.max_mouv:
+                    if drone_sent < self.max_moves:
                         found = False
                         for pi in range(len(self.paths)):
                             drones_on_path = sum(1 for drone in
