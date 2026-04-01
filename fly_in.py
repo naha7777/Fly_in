@@ -26,6 +26,6 @@ if __name__ == "__main__":
     except (ValueError, KeyboardInterrupt, KeyError, PermissionError,
             FileNotFoundError, Exception) as e:
         print(f"ERROR: {e}")
-        import traceback
-        traceback.print_exc()
+        # import traceback
+        # traceback.print_exc()
         exit(1)

@@ -22,6 +22,7 @@ class Simulation:
         self.turns = 0
         self.drone_path: dict[str, int] = {}
         self.path_capacities = path_capacities
+        self.drone_at_goal: list[Drone] = []
 
     def drones_in_start_zone(self) -> None:
         """Call the method putting all drones in start zone"""
@@ -54,8 +55,15 @@ class Simulation:
                     drone.move_drone(path[i+1])
 
             for drone in self.drones_in_simulation:
-                if drone.zone != self.zones[0].get("Name"):
-                    print(f"{drone.ID}-{drone.zone}", end=" ")
+                # print(drone)
+                # print(self.drone_at_goal)
+                if drone not in self.drone_at_goal:
+                    if drone.zone != self.zones[0].get("Name"):
+                        print(f"{drone.ID}-{drone.zone}", end=" ")
+                    if drone.zone == self.zones[-1].get("Name"):
+                        self.drone_at_goal.append(drone)
+                else:
+                    pass
 
             for d in self.drones_lst:
                 if d not in self.dont_put_back:
@@ -70,7 +78,6 @@ class Simulation:
             finished = sum(1 for d in self.drones_lst
                            if d.zone == self.zones[-1].get("Name"))
             if finished == len(self.drones_lst):
-                print()
                 return None
             print()
             return (f"\nTurn {self.turns}")
