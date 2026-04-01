@@ -335,9 +335,7 @@ class Manager:
                 while res is not None:
                     tt_turn += 1
                     res = simulator.simulate_turn()
-                print()
-                print()
-                print(f"Total turns: {tt_turn}")
+        print(f"Total turns: {tt_turn}")
 
     def animate(self) -> None:
         """Launch the arcade window to visually animate the simulation"""

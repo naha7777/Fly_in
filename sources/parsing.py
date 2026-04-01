@@ -7,6 +7,7 @@ check_path = []
 zones_blocked = []
 
 validate_names: dict[str, str] = {}
+sort_check_path = []
 
 
 def _validate_connection(zone_value: str, line: int, tt_line: int,
@@ -54,6 +55,10 @@ def _validate_connection(zone_value: str, line: int, tt_line: int,
        or validate_names["start_hub"] in zones_blocked:
         raise ValueError(f"line {line}: connection impossible because "
                          "start and end can't be blocked zones")
+    new_v = tuple(sorted((disconnected[0], disconnected[1])))
+    sort_check_path.append(new_v)
+    if len(sort_check_path) != len(set(sort_check_path)):
+        raise ValueError(f"line {line}: duplicate connections")
 
     if line == tt_line:
         _check_path(line)
@@ -65,7 +70,7 @@ def _check_path(line: int) -> None:
     """
     start_connected = False
     end_connected = False
-    sort_check_path = []
+
     is_there_a_path = False
     find_a_path = []
 
@@ -92,8 +97,6 @@ def _check_path(line: int) -> None:
                 is_there_a_path = True
             else:
                 find_a_path.append(v[0])
-        new_v = tuple(sorted(v))
-        sort_check_path.append(new_v)
         if validate_names["start_hub"] in v:
             if validate_names["start_hub"] == v[0]:
                 if len(find_a_path) == 0:
@@ -115,9 +118,6 @@ def _check_path(line: int) -> None:
     if not end_connected:
         raise ValueError(f"line {line}: missing connection"
                          " with end_hub")
-    if len(sort_check_path) != len(set(sort_check_path)):
-        raise ValueError(f"line {line}: duplicate connections"
-                         f" '{validate_names['connections']}'")
     if not is_there_a_path:
         raise ValueError(f"line {line}: start and end are never"
                          " connected")
@@ -159,7 +159,7 @@ def _validate_hub_metadata_multiple(new_value: list[str], line: int,
             count_max += 1
             try:
                 int(c_data[1])
-                if int(c_data[1]) < 0:
+                if int(c_data[1]) <= 0:
                     raise ValueError(f"line {line}: max_drones can't be "
                                      f"negative '{c_data[1]}'")
             except ValueError:
