@@ -31,5 +31,6 @@ def main() -> None:
         # traceback.print_exc()
         exit(1)
 
+
 if __name__ == "__main__":
     main()

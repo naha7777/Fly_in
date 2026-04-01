@@ -147,7 +147,7 @@ def _validate_hub_metadata_multiple(new_value: list[str], line: int,
             count_color += 1
             if not isinstance(c_data[1], str) or " " in c_data[1]:
                 raise ValueError(f"line {line}: color must be a string "
-                                     "without space")
+                                 "without space")
         elif c_data[0] == "zone":
             count_zone += 1
             if c_data[1] not in possible_zones:
