@@ -24,7 +24,7 @@ _This project has been created as part of the 42 curriculum by anacharp_
 | Entity | Attributes | Default capacity |
 |--------|------------|-----------------|
 | **Zone** | name, color, coordinates, type, max_drones | 1 drone |
-| **Connection** | name, source zone, target zone, max_link_capacity | 1 drone |
+| **Connection** | source zone, target zone, max_link_capacity | 1 drone |
 
 ---
 
@@ -81,7 +81,6 @@ Once paths are assigned to drones, the simulation proceeds turn by turn:
 - Each drone advances to the next zone on its path if capacity allows
 - `restricted` zones cost **2 turns**: the drone occupies the incoming connection for one turn before entering
 - `priority` zones cost **1 turn** and are preferred during path assignment
-- If a drone cannot move (zone full), it waits in place and is omitted from that turn's output
 - The simulation ends when all drones have reached the end zone
 
 ## Visual Representation
