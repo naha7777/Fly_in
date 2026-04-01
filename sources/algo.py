@@ -5,15 +5,15 @@ class EdmondsKarp:
     def __init__(self, C: list[list[int]], s: int, e: int,
                  priority: set[Any] | None = None) -> None:
         """Initialize Edmonds-Karp with a capacity matrix, source, sink, and
-           optional priority nodes."""
+           optional priority nodes"""
         self.C = C
         self.s = s
         self.e = e
         self.priority: set[Any] = priority or set()
 
     def create_matrice_F(self) -> tuple[list[list[int]], int]:
-        """Compute the maximum flow and return the flow matrix with the total
-           flow value."""
+        """Run Edmonds-Karp and return the flow matrix with the total flow
+           value"""
         self.n = len(self.C)
         self.F = [[0] * self.n for i in range(self.n)]
         path = self.bfs(self.C, self.F, self.s, self.e)
@@ -28,8 +28,8 @@ class EdmondsKarp:
 
     def bfs(self, C: list[list[int]], F: list[list[int]], s: int,
             e: int) -> list[tuple[int, int]] | None:
-        """Find one augmenting path from s to e using BFS, prioritizing
-           priority nodes, or return None."""
+        """Find an augmenting path from s to e via BFS, prioritizing priority
+           nodes"""
         queue = [s]
         paths: dict[int, list[tuple[int, int]]] = {s: []}
         if s == e:

@@ -11,7 +11,7 @@ from contextlib import redirect_stdout
 
 class Manager:
     def __init__(self, map_valid: dict[str, Any]) -> None:
-        """Initialize the Manager with a validated map configuration."""
+        """Initialize the Manager with a validated map configuration"""
         self.zones_lst: list[Zone] = []
         self.connection_lst: list[Connection] = []
         self.drones_lst: list[Drone] = []
@@ -24,7 +24,7 @@ class Manager:
                 self.zones[k] = v
 
     def create_zones(self) -> list[Zone]:
-        """Parse map data and instantiate all Zone objects."""
+        """Parse map data and instantiate all Zone objects"""
         for k, v in self.zones.items():
             self.name: str | Any = None
             self.metadt: str | Any = None
@@ -97,13 +97,13 @@ class Manager:
         return self.zones_lst
 
     def get_zo_infos(self) -> None:
-        """Populate all_about_zones with info dicts from each zone."""
+        """Populate all_about_zones with info dicts from each zone"""
         self.all_about_zones = []
         for zone in self.zones_lst:
             self.all_about_zones.append(zone.get_info())
 
     def create_connections(self) -> None:
-        """Parse map data and instantiate all Connection objects."""
+        """Parse map data and instantiate all Connection objects"""
         self.co_name = "connection"
         self.actual_zone = "start"
         self.zone_to_move_on = "end"
@@ -139,7 +139,7 @@ class Manager:
 
     def get_co_infos(self) -> None:
         """
-        Populate all_about_connections with info dicts from each connection.
+        Populate all_about_connections with info dicts from each connection
         """
         self.all_about_connections = []
         for connection in self.connection_lst:
@@ -147,7 +147,7 @@ class Manager:
 
     def create_matrice(self) -> tuple[list[list[int]], int, int]:
         """Build the capacity matrix for the flow network and return it
-           with source and sink indices."""
+           with source and sink indices"""
         self.matrice = []
         size = (len(self.all_about_zones)) * 2
         for i in range(size):
@@ -174,7 +174,7 @@ class Manager:
 
     def create_algo(self, algo: EdmondsKarp) -> tuple[list[list[int]], int]:
         """Run Edmonds-Karp on the capacity matrix and return the flow
-           matrix and max drone movements."""
+           matrix and max drone movements"""
         priority_indices = set()
         for zone in self.all_about_zones:
             if zone.get("Type_Zone") == "priority":
@@ -187,7 +187,7 @@ class Manager:
 
     def restriction(self, path: list[list[str]]) -> list[list[str]]:
         """Insert restriction markers into paths that pass through
-           restricted zones."""
+           restricted zones"""
         self.restricteds = []
         steps = []
         for zone in self.all_about_zones:
@@ -210,7 +210,7 @@ class Manager:
 
     def extract_paths(self, F: list[list[int]]) -> list[list[str]]:
         """Extract all individual paths from the flow matrix and translate
-           them to zone name sequences."""
+           them to zone name sequences"""
         local_paths_found: list[list[tuple[int, int]]] = []
         coor_path = self.bfs_extract(F, self.s, self.e)
         while coor_path is not None:
@@ -266,7 +266,7 @@ class Manager:
     def bfs_extract(self, F: list[list[int]], s: int,
                     e: int) -> list[tuple[int, int]] | None:
         """Find one augmenting path from s to e in F using BFS, or
-           return None if none exists."""
+           return None if none exists"""
         queue = [s]
         paths: dict[int, list[tuple[int, int]]] = {s: []}
         if s == e:
@@ -283,14 +283,14 @@ class Manager:
 
     def create_drones(self) -> None:
         """Instantiate all drone objects based on the configured drone
-           count."""
+           count"""
         for i in range(1, self.nb_drones + 1):
             new_drone = Drone(i, None)
             self.drones_lst.append(new_drone)
 
     def simulate(self, max_mouv: int) -> None:
         """Run the full simulation and write the turn-by-turn output to
-           output.txt."""
+           output.txt"""
         self.max_mouv = max_mouv
         path_capacities = []
         for path in self.path:
@@ -340,7 +340,7 @@ class Manager:
                 print(f"Total turns: {tt_turn}")
 
     def animate(self) -> None:
-        """Launch the arcade window to visually animate the simulation."""
+        """Launch the arcade window to visually animate the simulation"""
         simulator = Simulation(self.max_mouv, self.drones_lst,
                                self.all_about_zones,
                                self.path, self.path_capacities)

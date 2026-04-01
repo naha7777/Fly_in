@@ -99,10 +99,10 @@ Together these two outputs give a complete picture of the simulation: the termin
 With the terminal output, i created a graphical interface displays the zone network using the coordinates defined in the map file:
 - Each zone is drawn as a **colored circle** using the color specified in its metadata (or black if a color is not specified)
 - Connections are drawn as **edges** between nodes
-- Each drone is represented as a **little black circle** that moves along the edges turn by turn
+- Each drone is represented as a **little circle** that moves along the edges turn by turn
 - Name's zone are under the zones
 - Zone's capacity max capacity and occupancy are written upper the zones
-The current turn number is displayed in the window header
+- The current turn number is displayed on the top of the window
 
 ## Input and output examples
 For this input :

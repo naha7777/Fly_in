@@ -6,8 +6,8 @@ class Simulation:
     def __init__(self, max_moves: int, drones_lst: list[Drone],
                  zones: list[dict[str, Any]], paths: list[list[str]],
                  path_capacities: list[float]) -> None:
-        """Initialize Simulation with a maximum number of moves, informations
-           about drones, zones, paths and path capacities."""
+        """Initialize the simulation with drones, zones, paths and capacty
+           data"""
         self.max_moves = max_moves
         self.drones_lst = drones_lst
         self.zones = zones
@@ -25,21 +25,21 @@ class Simulation:
         self.drone_at_goal: list[Drone] = []
 
     def drones_in_start_zone(self) -> None:
-        """Call the method putting all drones in start zone"""
+        """Place all drones in the start zone before the simulation begins"""
         start: str = str(self.zones[0].get("Name"))
         for drone in self.drones_lst:
             drone.add_drone_to_start(start)
 
     def get_drones_info(self) -> list[dict[str, Any]]:
-        """Put all informations about drones on a list and return it"""
+        """Return a list of info dictionaries for all drones"""
         self.all_id_drones = []
         for drone in self.drones_lst:
             self.all_id_drones.append(drone.get_info())
         return self.all_id_drones
 
     def simulate_turn(self) -> str | None:
-        """Simulate a turn : count the number of turns and move the drones
-           following the path/s, write all drones movements in one line"""
+        """Simulate one turn, move all active drones and return None when
+           finished"""
         self.turns += 1
         drone_sent = 0
         path_index = 0
@@ -55,8 +55,6 @@ class Simulation:
                     drone.move_drone(path[i+1])
 
             for drone in self.drones_in_simulation:
-                # print(drone)
-                # print(self.drone_at_goal)
                 if drone not in self.drone_at_goal:
                     if drone.zone != self.zones[0].get("Name"):
                         print(f"{drone.ID}-{drone.zone}", end=" ")

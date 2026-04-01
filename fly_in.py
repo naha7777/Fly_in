@@ -4,7 +4,8 @@ from sources.manager import Manager
 from sources.algo import EdmondsKarp
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """Entry point: parse arguments, run simulation and animation."""
     try:
         if len(sys.argv) != 2:
             raise ValueError("invalid number of arguments")
@@ -29,3 +30,6 @@ if __name__ == "__main__":
         # import traceback
         # traceback.print_exc()
         exit(1)
+
+if __name__ == "__main__":
+    main()

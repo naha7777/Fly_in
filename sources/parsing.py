@@ -11,7 +11,7 @@ validate_names: dict[str, str] = {}
 
 def _validate_connection(zone_value: str, line: int, tt_line: int,
                          new_value: list[str]) -> None:
-    """Validate syntax and semantics of a connection entry."""
+    """Validate syntax and semantics of a connection entry"""
     possible_co = ["max_link_capacity"]
     if "-" not in zone_value:
         raise ValueError(f"line {line}: invalid connection '{zone_value}' "
@@ -61,7 +61,7 @@ def _validate_connection(zone_value: str, line: int, tt_line: int,
 
 def _check_path(line: int) -> None:
     """
-    Check that a path exists from start_hub to end_hub without blocked zones.
+    Check that a path exists from start_hub to end_hub without blocked zones
     """
     start_connected = False
     end_connected = False
@@ -125,9 +125,8 @@ def _check_path(line: int) -> None:
 
 def _validate_hub_metadata_multiple(new_value: list[str], line: int,
                                     metadata_type: list[str],
-                                    possible_colors: list[str],
                                     possible_zones: list[str]) -> None:
-    """Validate multiple space-separated metadata pairs inside brackets."""
+    """Validate multiple space-separated metadata pairs inside brackets"""
     count_zone = 0
     count_color = 0
     count_max = 0
@@ -146,9 +145,9 @@ def _validate_hub_metadata_multiple(new_value: list[str], line: int,
                              f" '{c_data[0]}'")
         if c_data[0] == "color":
             count_color += 1
-            if c_data[1] not in possible_colors:
-                raise ValueError(f"line {line}: invalid color"
-                                 f" '{c_data[1]}'")
+            if not isinstance(c_data[1], str) or " " in c_data[1]:
+                raise ValueError(f"line {line}: color must be a string "
+                                     "without space")
         elif c_data[0] == "zone":
             count_zone += 1
             if c_data[1] not in possible_zones:
@@ -173,17 +172,17 @@ def _validate_hub_metadata_multiple(new_value: list[str], line: int,
 
 def _validate_hub_metadata_single(new_value: list[str], line: int,
                                   metadata_type: list[str],
-                                  possible_colors: list[str],
                                   possible_zones: list[str]) -> None:
-    """Validate a single metadata pair inside brackets."""
+    """Validate a single metadata pair inside brackets"""
     metadatas = new_value[3].strip("[")
     metadatas = metadatas.rstrip("]")
     data = metadatas.split("=")
     if data[0] not in metadata_type:
         raise ValueError(f"line {line}: invalid metadata '{data[0]}'")
     if data[0] == "color":
-        if data[1] not in possible_colors:
-            raise ValueError(f"line {line}: invalid color '{data[1]}'")
+        if not isinstance(data[1], str) or " " in data[1]:
+            raise ValueError(f"line {line}: color must be a string "
+                             "without space")
     if data[0] == "zone":
         if data[1] not in possible_zones:
             raise ValueError(f"line {line}: invalid zone '{data[1]}'")
@@ -198,7 +197,7 @@ def _validate_hub_metadata_single(new_value: list[str], line: int,
 
 
 def _validate_hub(line: int, new_value: list[str]) -> None:
-    """Validate a hub entry: name, coordinates, and optional metadata."""
+    """Validate a hub entry: name, coordinates, and optional metadata"""
     if len(new_value) != 4 and len(new_value) != 3:
         raise ValueError(f"line {line}: informations incorrect {new_value}")
     for c in new_value[0]:
@@ -227,22 +226,18 @@ def _validate_hub(line: int, new_value: list[str]) -> None:
 
     multiple = any(c == " " for c in new_value[3])
     metadata_type = ["color", "zone", "max_drones"]
-    possible_colors = ["blue", "red", "green", "orange", "yellow", "cyan",
-                       "pink", "purple", "brown", "lime", "magenta", "gold",
-                       "black", "maroon", "darkred", "violet", "crimson",
-                       "rainbow", "white", "gray"]
     possible_zones = ["normal", "blocked", "priority", "restricted"]
 
     if multiple:
         _validate_hub_metadata_multiple(new_value, line, metadata_type,
-                                        possible_colors, possible_zones)
+                                        possible_zones)
     else:
         _validate_hub_metadata_single(new_value, line, metadata_type,
-                                      possible_colors, possible_zones)
+                                      possible_zones)
 
 
 def validate(type: str, zone_value: str, line: int, tt_line: int) -> None:
-    """Dispatch validation for a map entry (hub or connection)."""
+    """Dispatch validation for a map entry (hub or connection)"""
     new_value = zone_value.split(" ", 3)
 
     validate_names[type] = new_value[0]
@@ -257,7 +252,7 @@ def validate(type: str, zone_value: str, line: int, tt_line: int) -> None:
 
 
 class MapConfig(BaseModel):
-    """Pydantic model for a fully-parsed map configuration."""
+    """Pydantic model for a fully-parsed map configuration"""
 
     nb_drones: int = Field(ge=1)
     drones_line: int = Field(ge=1)
@@ -273,7 +268,7 @@ class MapConfig(BaseModel):
 
     @model_validator(mode="after")
     def validate_hubs(self) -> 'MapConfig':
-        """Run semantic validation on all hubs and connections in order."""
+        """Run semantic validation on all hubs and connections in order"""
         validate("start_hub", self.start_hub, self.start_line, self.tt_line)
         i = 0
         for k, v in self.hubs.items():
@@ -294,14 +289,14 @@ class MapConfig(BaseModel):
 
 
 def change_hub_or_connection(key: str, i: int) -> str:
-    """Return ``key`` for i=0, or ``key<i>`` for subsequent occurrences."""
+    """Return ``key`` for i=0, or ``key<i>`` for subsequent occurrences"""
     if i == 0:
         return f"{key}"
     return f"{key}{i}"
 
 
 class Maps:
-    """Parse and validate a drone-map configuration file."""
+    """Parse and validate a drone-map configuration file"""
 
     def __init__(self, file: str) -> None:
         """Parse and validate the map at *file*."""
@@ -321,14 +316,14 @@ class Maps:
                                "connection"]
 
     def _read_file(self, file: str) -> list[str]:
-        """Read the map file and return its lines."""
+        """Read the map file and return its lines"""
         with open(file, "r") as f:
             return f.read().split("\n")
 
     def _parse_line(self, line: str, hub_lines: list[int],
                     co_lines: list[int]) -> tuple[int | None, int | None,
                                                   int | None, int | None]:
-        """Parse one line, update ``self.config``, and return line numbers."""
+        """Parse one line, update ``self.config``, and return line numbers"""
         drones_line = start_line = end_line = None
 
         if line.startswith("#") or not line.strip():
@@ -388,7 +383,7 @@ class Maps:
         return drones_line, start_line, end_line, self.line_count
 
     def _build_sub_dicts(self) -> tuple[dict[str, Any], dict[str, Any]]:
-        """Extract hub and connection sub-dicts from ``self.config``."""
+        """Extract hub and connection sub-dicts from self.config"""
         hub_dict = {k: v for k, v in self.config.items()
                     if k.startswith("hub")}
         co_dict = {k: v for k, v in self.config.items()
@@ -401,7 +396,7 @@ class Maps:
                                  hub_lines: list[int], co_lines: list[int],
                                  tt_line: int) -> MapConfig:
         """
-        Instantiate MapConfig and re-raise ValidationError with line info.
+        Instantiate MapConfig and re-raise ValidationError with line info
         """
         try:
             validated = MapConfig(
@@ -434,7 +429,7 @@ class Maps:
         return validated
 
     def validate_config(self, file: str) -> dict[str, Any]:
-        """Parse the map file and return the validated configuration dict."""
+        """Parse the map file and return the validated configuration dict"""
         self._init_counters()
         map_content = self._read_file(file)
 
