@@ -31,9 +31,10 @@ def _validate_connection(zone_value: str, line: int, tt_line: int,
                              f"'{clear_metadata}'")
         separate_value = clear_metadata.split("=")
         if not separate_value[1] or not separate_value[1].isdigit()\
-           or int(separate_value[1]) < 0:
+           or int(separate_value[1]) <= 0:
             raise ValueError(f"line {line}: '{separate_value[1]}' is "
-                             "incorrect, value must be a positive integer")
+                             "incorrect, max_link_capacity must be superior "
+                             "than '0'")
         if separate_value[0] not in possible_co:
             raise ValueError(f"line {line}: metadata '{separate_value[0]}'"
                              " incorrect")
