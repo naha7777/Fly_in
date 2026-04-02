@@ -288,7 +288,7 @@ class Manager:
             new_drone = Drone(i, None)
             self.drones_lst.append(new_drone)
 
-    def simulate(self, max_mouv: int) -> None:
+    def simulate(self, max_mouv: int, show_datas: bool) -> None:
         """Run the full simulation and write the turn-by-turn output to
            output.txt"""
         self.max_mouv = max_mouv
@@ -323,8 +323,9 @@ class Manager:
         self.path_capacities = [p[1] for p in paired]
 
         simulator = Simulation(self.max_mouv, self.drones_lst,
-                               self.all_about_zones,
-                               self.path, self.path_capacities)
+                               self.all_about_zones, self.path,
+                               self.path_capacities,
+                               self.all_about_connections)
         simulator.drones_in_start_zone()
         simulator.get_drones_info()
 
@@ -334,14 +335,15 @@ class Manager:
             with redirect_stdout(f):
                 while res is not None:
                     tt_turn += 1
-                    res = simulator.simulate_turn()
+                    res = simulator.simulate_turn(show_datas)
         print(f"Total turns: {tt_turn}")
 
     def animate(self) -> None:
         """Launch the arcade window to visually animate the simulation"""
         simulator = Simulation(self.max_mouv, self.drones_lst,
                                self.all_about_zones,
-                               self.path, self.path_capacities)
+                               self.path, self.path_capacities,
+                               self.all_about_connections)
         all_drones = simulator.get_drones_info()
         window = Visual(self.all_about_zones, self.all_about_connections,
                         all_drones)
