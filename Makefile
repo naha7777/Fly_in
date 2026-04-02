@@ -8,11 +8,15 @@ install:
 
 run:
 	uv sync
-	.venv/bin/python3 fly_in.py maps/easy/01_linear_path.txt
+	.venv/bin/python3 fly_in.py
+
+data:
+	uv sync
+	.venv/bin/python3 fly_in.py show_datas
 
 debug:
 	uv sync
-	.venv/bin/python3 -m pdb fly_in.py maps/easy/01_linear_path.txt
+	.venv/bin/python3 -m pdb fly_in.py
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
@@ -39,4 +43,4 @@ lint-strict:
 	uv run mypy $(SRC) $(FLAGS) --strict || status=$$?; \
 	exit $$status
 
-.PHONY: install run debug clean fclean lint lint-strict
+.PHONY: install run debug clean fclean lint lint-strict data

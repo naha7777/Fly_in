@@ -53,9 +53,14 @@ uv run python fly_in.py map.txt
 ```
 or
 ```bash
-make run
+make run map.txt
 ```
 `make run` use the first easy map, to test other map you will need to modifie the Makefile or the map itself.
+
+I you want to see zones' and coordinates' datas in the output.txt :
+```bash
+make data map.txt
+```
 
 ## Algorithm Explanation
 
