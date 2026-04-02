@@ -8,11 +8,11 @@ install:
 
 run:
 	uv sync
-	.venv/bin/python3 fly_in.py
+	.venv/bin/python3 fly_in.py maps/easy/01_linear_path.txt
 
 data:
 	uv sync
-	.venv/bin/python3 fly_in.py show_datas
+	.venv/bin/python3 fly_in.py show_datas maps/easy/01_linear_path.txt
 
 debug:
 	uv sync
