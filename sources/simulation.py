@@ -57,7 +57,7 @@ class Simulation:
                     if step not in zones_actives:
                         zones_actives[step] = set()
                     if i > 0:
-                        if step == "goal":
+                        if "goal" in step:
                             self.count_goal += 1
                         connection = f"{path[i-1]}-{step}"
                         zones_actives[step].add(connection)
@@ -92,7 +92,7 @@ class Simulation:
             else:
                 for z, val in zo_and_values.items():
                     if actual_z[i] == z:
-                        if actual_z[i] == "goal":
+                        if "goal" in actual_z[i]:
                             self.count_goal += 1
                             print(f"{actual_z[i]}: {self.count_goal}/"
                                   f"{val}", end=", ")
