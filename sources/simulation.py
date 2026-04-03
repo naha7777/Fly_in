@@ -104,20 +104,21 @@ class Simulation:
                     ind += 1
                 for c, value in co_and_values.items():
                     c_sp = c.split("-")
-                    if "-" in actual_z[i-1]:
-                        pass
-                    elif "-" not in path[ind-1]:
-                        if c_sp[1] == actual_z[i] and c_sp[0] == path[ind-1]:
-                            print(f"{path[ind-1]}-{actual_z[i]}: {zone_count}/"
-                                  f"{value}")
-                    else:
-                        if c_sp[1] == actual_z[i] and c_sp[0] == path[ind-2]:
-                            print(f"{path[ind-2]}-{actual_z[i]}: {zone_count}/"
-                                  f"{value}")
+                    # if "-" in actual_z[i-1]:
+                    #     pass
+                    # if "-" not in path[ind-1]:
+                    if c_sp[1] == actual_z[i] and c_sp[0] == path[ind-1]:
+                        print(f"{path[ind-1]}-{actual_z[i]}: {zone_count}/"
+                              f"{value}")
+                    # else:
+                    #     if c_sp[1] == actual_z[i] and c_sp[0] == path[ind-2]:
+                    #         print(f"{path[ind-2]}-{actual_z[i]}: "\
+                    #               f"{zone_count}/{value}")
 
     def simulate_turn(self, show_datas: bool) -> str | None:
         """Simulate one turn, move all active drones and return None when
            finished"""
+        print()
         self.turns += 1
         drone_sent = 0
         path_index = 0
@@ -229,7 +230,6 @@ class Simulation:
                         break
         finished = sum(1 for d in self.drones_lst if d.zone ==
                        self.zones[-1].get("Name"))
-
         if show_datas and len(actual_zones) != 0:
             print()
             self.ft_print_datas_paths(actual_zones, co_and_values,
